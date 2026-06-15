@@ -6,4 +6,7 @@ export abstract class Transaction {
     public transactionDate: Date,
     public notes?: string,
   ) {}
+  public isValid(): boolean {
+    return this.amount > 0;
+  }
 }
