@@ -7,10 +7,15 @@ import { AddIncomeScreen } from "../screens/AddIncomeScreen";
 
 export type RootStackParamList = {
   Dashboard: undefined;
-  AddExpense: undefined;
-  AddIncome: undefined;
-};
 
+  AddExpense: {
+    expenseId?: string;
+  };
+
+  AddIncome: {
+    incomeId?: string;
+  };
+};
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export function AppNavigator() {

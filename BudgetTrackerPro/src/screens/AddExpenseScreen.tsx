@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, TextInput, Button, Alert, StyleSheet } from "react-native";
 
 import { Expense } from "../domain/models/Expense";
@@ -7,11 +7,37 @@ import { CategoryType } from "../domain/enums/CategoryType";
 
 import { useRepositories } from "../context/RepositoryContext";
 
-export function AddExpenseScreen({ navigation }: any) {
-  const { addExpenseUseCase } = useRepositories();
+export function AddExpenseScreen({ navigation, route }: any) {
+  const { addExpenseUseCase, updateExpenseUseCase, expenseRepository } =
+    useRepositories();
 
   const [title, setTitle] = useState("");
   const [amount, setAmount] = useState("");
+
+  const expenseId = route?.params?.expenseId;
+
+  const [isEditMode, setIsEditMode] = useState(false);
+
+  useEffect(() => {
+    const loadExpense = async () => {
+      if (!expenseId) {
+        return;
+      }
+
+      const expense = await expenseRepository.getById(expenseId);
+
+      if (!expense) {
+        return;
+      }
+
+      setTitle(expense.title);
+      setAmount(expense.amount.toString());
+
+      setIsEditMode(true);
+    };
+
+    loadExpense();
+  }, [expenseId]);
 
   const handleSave = async () => {
     try {
@@ -22,26 +48,33 @@ export function AddExpenseScreen({ navigation }: any) {
       );
 
       const expense = new Expense(
-        Date.now().toString(),
+        expenseId ?? Date.now().toString(),
         title,
         Number(amount),
         new Date(),
         category,
       );
 
-      await addExpenseUseCase.execute(expense);
+      if (isEditMode) {
+        await updateExpenseUseCase.execute(expense);
 
-      Alert.alert("Success", "Expense saved");
+        Alert.alert("Success", "Expense updated");
+      } else {
+        await addExpenseUseCase.execute(expense);
+
+        Alert.alert("Success", "Expense saved");
+      }
 
       navigation.goBack();
     } catch (error) {
       Alert.alert("Error", "Unable to save expense");
     }
   };
-
   return (
     <View style={styles.container}>
-      <Text style={styles.heading}>Add Expense</Text>
+      <Text style={styles.heading}>
+        {isEditMode ? "Edit Expense" : "Add Expense"}
+      </Text>
 
       <TextInput
         placeholder="Title"
@@ -58,7 +91,10 @@ export function AddExpenseScreen({ navigation }: any) {
         style={styles.input}
       />
 
-      <Button title="Save Expense" onPress={handleSave} />
+      <Button
+        title={isEditMode ? "Update Expense" : "Save Expense"}
+        onPress={handleSave}
+      />
     </View>
   );
 }

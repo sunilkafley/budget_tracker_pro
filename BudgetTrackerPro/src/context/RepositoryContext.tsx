@@ -1,17 +1,22 @@
 import React, { createContext, useContext } from "react";
 
-import { FakeExpenseRepository } from "../infrastructure/repositories/FakeExpenseRepository";
-import { FakeIncomeRepository } from "../infrastructure/repositories/FakeIncomeRepository";
-import { FakeBudgetRepository } from "../infrastructure/repositories/FakeBudgetRepository";
+import { AsyncExpenseRepository } from "../infrastructure/repositories/AsyncExpenseRepository";
+import { AsyncIncomeRepository } from "../infrastructure/repositories/AsyncIncomeRepository";
+import { AsyncBudgetRepository } from "../infrastructure/repositories/AsyncBudgetRepository";
 
 import { AddExpenseUseCase } from "../application/useCases/AddExpenseUseCase";
 import { AddIncomeUseCase } from "../application/useCases/AddIncomeUseCase";
 import { CreateBudgetUseCase } from "../application/useCases/CreateBudgetUseCase";
 import { GetDashboardSummaryUseCase } from "../application/useCases/GetDashboardSummaryUseCase";
 
-const expenseRepository = new FakeExpenseRepository();
-const incomeRepository = new FakeIncomeRepository();
-const budgetRepository = new FakeBudgetRepository();
+import { GetAllExpensesUseCase } from "../application/useCases/GetAllExpensesUseCase";
+import { GetAllIncomesUseCase } from "../application/useCases/GetAllIncomesUseCase";
+import { UpdateIncomeUseCase } from "../application/useCases/UpdateIncomeUseCase";
+import { UpdateExpenseUseCase } from "../application/useCases/UpdateExpenseUseCase";
+
+const expenseRepository = new AsyncExpenseRepository();
+const incomeRepository = new AsyncIncomeRepository();
+const budgetRepository = new AsyncBudgetRepository();
 
 const repositoryContextValue = {
   expenseRepository,
@@ -27,6 +32,14 @@ const repositoryContextValue = {
     incomeRepository,
     expenseRepository,
   ),
+
+  getAllIncomesUseCase: new GetAllIncomesUseCase(incomeRepository),
+
+  getAllExpensesUseCase: new GetAllExpensesUseCase(expenseRepository),
+
+  updateIncomeUseCase: new UpdateIncomeUseCase(incomeRepository),
+
+  updateExpenseUseCase: new UpdateExpenseUseCase(expenseRepository),
 };
 
 const RepositoryContext = createContext(repositoryContextValue);

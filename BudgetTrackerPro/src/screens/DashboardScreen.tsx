@@ -4,8 +4,15 @@ import { View, Text, StyleSheet, Button } from "react-native";
 
 import { useRepositories } from "../context/RepositoryContext";
 
+import { Income } from "../domain/models/Income";
+import { Expense } from "../domain/models/Expense";
+
 export function DashboardScreen({ navigation }: any) {
-  const { getDashboardSummaryUseCase } = useRepositories();
+  const {
+    getDashboardSummaryUseCase,
+    getAllIncomesUseCase,
+    getAllExpensesUseCase,
+  } = useRepositories();
 
   const [summary, setSummary] = useState({
     totalIncome: 0,
@@ -15,10 +22,19 @@ export function DashboardScreen({ navigation }: any) {
     upcomingPaymentsCount: 0,
   });
 
-  const loadDashboard = async () => {
-    const result = await getDashboardSummaryUseCase.execute();
+  const [incomes, setIncomes] = useState<Income[]>([]);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
 
-    setSummary(result);
+  const loadDashboard = async () => {
+    const summaryResult = await getDashboardSummaryUseCase.execute();
+
+    const incomesResult = await getAllIncomesUseCase.execute();
+
+    const expensesResult = await getAllExpensesUseCase.execute();
+
+    setSummary(summaryResult);
+    setIncomes(incomesResult);
+    setExpenses(expensesResult);
   };
 
   useFocusEffect(
@@ -38,6 +54,60 @@ export function DashboardScreen({ navigation }: any) {
 
         <Text>Savings: ${summary.savings}</Text>
       </View>
+
+      <Text style={styles.sectionTitle}>Recent Incomes</Text>
+
+      {incomes.map((income) => (
+        <View
+          key={income.id}
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 8,
+          }}
+        >
+          <Text>
+            + {income.title} (${income.amount})
+          </Text>
+
+          <Button
+            title="Edit"
+            onPress={() =>
+              navigation.navigate("AddIncome", {
+                incomeId: income.id,
+              })
+            }
+          />
+        </View>
+      ))}
+
+      <Text style={styles.sectionTitle}>Recent Expenses</Text>
+
+      {expenses.map((expense) => (
+        <View
+          key={expense.id}
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 8,
+          }}
+        >
+          <Text>
+            - {expense.title} (${expense.amount})
+          </Text>
+
+          <Button
+            title="Edit"
+            onPress={() =>
+              navigation.navigate("AddExpense", {
+                expenseId: expense.id,
+              })
+            }
+          />
+        </View>
+      ))}
 
       <Button
         title="Add Expense"
@@ -71,5 +141,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 10,
     marginBottom: 20,
+  },
+
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginTop: 20,
+    marginBottom: 10,
   },
 });

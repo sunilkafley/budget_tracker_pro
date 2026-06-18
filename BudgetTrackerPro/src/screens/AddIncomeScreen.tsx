@@ -1,29 +1,61 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, TextInput, Button, Alert, StyleSheet } from "react-native";
 
 import { Income } from "../domain/models/Income";
 import { useRepositories } from "../context/RepositoryContext";
 
-export function AddIncomeScreen({ navigation }: any) {
-  const { addIncomeUseCase } = useRepositories();
+export function AddIncomeScreen({ navigation, route }: any) {
+  const { addIncomeUseCase, updateIncomeUseCase, incomeRepository } =
+    useRepositories();
 
   const [title, setTitle] = useState("");
   const [amount, setAmount] = useState("");
   const [source, setSource] = useState("");
+  const incomeId = route?.params?.incomeId;
+
+  const [isEditMode, setIsEditMode] = useState(false);
+
+  useEffect(() => {
+    const loadIncome = async () => {
+      if (!incomeId) {
+        return;
+      }
+
+      const income = await incomeRepository.getById(incomeId);
+
+      if (!income) {
+        return;
+      }
+
+      setTitle(income.title);
+      setAmount(income.amount.toString());
+      setSource(income.source);
+
+      setIsEditMode(true);
+    };
+
+    loadIncome();
+  }, [incomeId]);
 
   const handleSave = async () => {
     try {
       const income = new Income(
-        Date.now().toString(),
+        incomeId ?? Date.now().toString(),
         title,
         Number(amount),
         new Date(),
         source,
       );
 
-      await addIncomeUseCase.execute(income);
+      if (isEditMode) {
+        await updateIncomeUseCase.execute(income);
 
-      Alert.alert("Success", "Income saved");
+        Alert.alert("Success", "Income updated");
+      } else {
+        await addIncomeUseCase.execute(income);
+
+        Alert.alert("Success", "Income saved");
+      }
 
       navigation.goBack();
     } catch (error) {
@@ -33,7 +65,9 @@ export function AddIncomeScreen({ navigation }: any) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.heading}>Add Income</Text>
+      <Text style={styles.heading}>
+        {isEditMode ? "Edit Income" : "Add Income"}
+      </Text>
 
       <TextInput
         placeholder="Title"
@@ -57,7 +91,10 @@ export function AddIncomeScreen({ navigation }: any) {
         style={styles.input}
       />
 
-      <Button title="Save Income" onPress={handleSave} />
+      <Button
+        title={isEditMode ? "Update Income" : "Save Income"}
+        onPress={handleSave}
+      />
     </View>
   );
 }
