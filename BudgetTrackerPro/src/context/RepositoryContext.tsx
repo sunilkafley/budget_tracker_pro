@@ -13,6 +13,8 @@ import { GetAllExpensesUseCase } from "../application/useCases/GetAllExpensesUse
 import { GetAllIncomesUseCase } from "../application/useCases/GetAllIncomesUseCase";
 import { UpdateIncomeUseCase } from "../application/useCases/UpdateIncomeUseCase";
 import { UpdateExpenseUseCase } from "../application/useCases/UpdateExpenseUseCase";
+import { DeleteIncomeUseCase } from "../application/useCases/DeleteIncomeUseCase";
+import { DeleteExpenseUseCase } from "../application/useCases/DeleteExpenseUseCase";
 
 const expenseRepository = new AsyncExpenseRepository();
 const incomeRepository = new AsyncIncomeRepository();
@@ -40,6 +42,10 @@ const repositoryContextValue = {
   updateIncomeUseCase: new UpdateIncomeUseCase(incomeRepository),
 
   updateExpenseUseCase: new UpdateExpenseUseCase(expenseRepository),
+
+  deleteIncomeUseCase: new DeleteIncomeUseCase(incomeRepository),
+
+  deleteExpenseUseCase: new DeleteExpenseUseCase(expenseRepository),
 };
 
 const RepositoryContext = createContext(repositoryContextValue);

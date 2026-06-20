@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
-import { View, Text, StyleSheet, Button } from "react-native";
+import { View, Text, StyleSheet, Button, Alert } from "react-native";
 
 import { useRepositories } from "../context/RepositoryContext";
 
@@ -12,6 +12,9 @@ export function DashboardScreen({ navigation }: any) {
     getDashboardSummaryUseCase,
     getAllIncomesUseCase,
     getAllExpensesUseCase,
+
+    deleteIncomeUseCase,
+    deleteExpenseUseCase,
   } = useRepositories();
 
   const [summary, setSummary] = useState({
@@ -37,6 +40,48 @@ export function DashboardScreen({ navigation }: any) {
     setExpenses(expensesResult);
   };
 
+  const handleDeleteIncome = async (id: string) => {
+    Alert.alert("Delete Income", "Are you sure?", [
+      {
+        text: "Cancel",
+        style: "cancel",
+      },
+
+      {
+        text: "Delete",
+
+        style: "destructive",
+
+        onPress: async () => {
+          await deleteIncomeUseCase.execute(id);
+
+          await loadDashboard();
+        },
+      },
+    ]);
+  };
+
+  const handleDeleteExpense = async (id: string) => {
+    Alert.alert("Delete Expense", "Are you sure?", [
+      {
+        text: "Cancel",
+        style: "cancel",
+      },
+
+      {
+        text: "Delete",
+
+        style: "destructive",
+
+        onPress: async () => {
+          await deleteExpenseUseCase.execute(id);
+
+          await loadDashboard();
+        },
+      },
+    ]);
+  };
+
   useFocusEffect(
     useCallback(() => {
       loadDashboard();
@@ -58,54 +103,52 @@ export function DashboardScreen({ navigation }: any) {
       <Text style={styles.sectionTitle}>Recent Incomes</Text>
 
       {incomes.map((income) => (
-        <View
-          key={income.id}
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: 8,
-          }}
-        >
+        <View key={`income-${income.id}`} style={styles.row}>
           <Text>
             + {income.title} (${income.amount})
           </Text>
 
-          <Button
-            title="Edit"
-            onPress={() =>
-              navigation.navigate("AddIncome", {
-                incomeId: income.id,
-              })
-            }
-          />
+          <View style={styles.actionContainer}>
+            <Button
+              title="Edit"
+              onPress={() =>
+                navigation.navigate("AddIncome", {
+                  incomeId: income.id,
+                })
+              }
+            />
+
+            <Button
+              title="Delete"
+              onPress={() => handleDeleteIncome(income.id)}
+            />
+          </View>
         </View>
       ))}
 
       <Text style={styles.sectionTitle}>Recent Expenses</Text>
 
       {expenses.map((expense) => (
-        <View
-          key={expense.id}
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: 8,
-          }}
-        >
+        <View key={`expense-${expense.id}`} style={styles.row}>
           <Text>
             - {expense.title} (${expense.amount})
           </Text>
 
-          <Button
-            title="Edit"
-            onPress={() =>
-              navigation.navigate("AddExpense", {
-                expenseId: expense.id,
-              })
-            }
-          />
+          <View style={styles.actionContainer}>
+            <Button
+              title="Edit"
+              onPress={() =>
+                navigation.navigate("AddExpense", {
+                  expenseId: expense.id,
+                })
+              }
+            />
+
+            <Button
+              title="Delete"
+              onPress={() => handleDeleteExpense(expense.id)}
+            />
+          </View>
         </View>
       ))}
 
@@ -114,7 +157,7 @@ export function DashboardScreen({ navigation }: any) {
         onPress={() => navigation.navigate("AddExpense")}
       />
 
-      <View style={{ height: 10 }} />
+      <View style={styles.spacer} />
 
       <Button
         title="Add Income"
@@ -148,5 +191,20 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginTop: 20,
     marginBottom: 10,
+  },
+
+  row: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+
+  actionContainer: {
+    flexDirection: "row",
+  },
+
+  spacer: {
+    height: 10,
   },
 });
