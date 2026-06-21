@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { DashboardScreen } from "../screens/DashboardScreen";
 import { AddExpenseScreen } from "../screens/AddExpenseScreen";
 import { AddIncomeScreen } from "../screens/AddIncomeScreen";
+import CreateBudgetScreen from "../screens/CreateBudgetScreen";
 
 export type RootStackParamList = {
   Dashboard: undefined;
@@ -15,26 +16,22 @@ export type RootStackParamList = {
   AddIncome: {
     incomeId?: string;
   };
+
+  CreateBudget: undefined;
 };
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export function AppNavigator() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Dashboard">
+      <Stack.Navigator>
         <Stack.Screen name="Dashboard" component={DashboardScreen} />
 
-        <Stack.Screen
-          name="AddExpense"
-          component={AddExpenseScreen}
-          options={{ title: "Add Expense" }}
-        />
+        <Stack.Screen name="AddIncome" component={AddIncomeScreen} />
 
-        <Stack.Screen
-          name="AddIncome"
-          component={AddIncomeScreen}
-          options={{ title: "Add Income" }}
-        />
+        <Stack.Screen name="AddExpense" component={AddExpenseScreen} />
+
+        <Stack.Screen name="CreateBudget" component={CreateBudgetScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

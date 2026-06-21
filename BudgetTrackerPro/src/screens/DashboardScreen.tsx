@@ -163,6 +163,11 @@ export function DashboardScreen({ navigation }: any) {
         title="Add Income"
         onPress={() => navigation.navigate("AddIncome")}
       />
+
+      <Button
+        title="Create Budget"
+        onPress={() => navigation.navigate("CreateBudget")}
+      />
     </View>
   );
 }
