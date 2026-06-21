@@ -188,19 +188,34 @@ export function DashboardScreen({ navigation }: any) {
       {budgetUsage.length === 0 ? (
         <Text>No budgets created yet</Text>
       ) : (
-        budgetUsage.map((budget) => (
-          <View key={budget.category.id} style={styles.budgetCard}>
-            <Text style={styles.budgetTitle}>{budget.category.name}</Text>
+        budgetUsage.map((budget) => {
+          const isOverBudget = AnalyticsService.isOverBudget(
+            budget.spentAmount,
+            budget.budgetAmount,
+          );
 
-            <Text>
-              ${budget.spentAmount} / ${budget.budgetAmount}
-            </Text>
+          return (
+            <View key={budget.category.id} style={styles.budgetCard}>
+              <Text style={styles.budgetTitle}>{budget.category.name}</Text>
 
-            <Text>Remaining: ${budget.remainingAmount}</Text>
+              <Text>
+                ${budget.spentAmount} / ${budget.budgetAmount}
+              </Text>
 
-            <Text>{budget.percentageUsed}% Used</Text>
-          </View>
-        ))
+              <Text>Remaining: ${Math.max(budget.remainingAmount, 0)}</Text>
+
+              <Text>{budget.percentageUsed}% Used</Text>
+
+              {isOverBudget && (
+                <View style={styles.warningContainer}>
+                  <Text style={styles.warningText}>⚠ Over Budget</Text>
+
+                  <Text>Over by ${Math.abs(budget.remainingAmount)}</Text>
+                </View>
+              )}
+            </View>
+          );
+        })
       )}
 
       <Button
@@ -279,6 +294,19 @@ const styles = StyleSheet.create({
 
   budgetTitle: {
     fontSize: 16,
+    fontWeight: "bold",
+  },
+
+  warningContainer: {
+    marginTop: 10,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: "red",
+    borderRadius: 8,
+  },
+
+  warningText: {
+    color: "red",
     fontWeight: "bold",
   },
 });

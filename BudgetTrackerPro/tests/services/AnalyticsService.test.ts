@@ -92,4 +92,16 @@ describe("AnalyticsService", () => {
 
     expect(result[0].percentageUsed).toBe(0);
   });
+
+  it("returns true when budget is exceeded", () => {
+    const result = AnalyticsService.isOverBudget(650, 500);
+
+    expect(result).toBe(true);
+  });
+
+  it("returns false when within budget", () => {
+    const result = AnalyticsService.isOverBudget(400, 500);
+
+    expect(result).toBe(false);
+  });
 });

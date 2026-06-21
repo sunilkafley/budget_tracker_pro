@@ -61,4 +61,8 @@ export class AnalyticsService {
       };
     });
   }
+
+  static isOverBudget(spentAmount: number, budgetAmount: number): boolean {
+    return spentAmount > budgetAmount;
+  }
 }
