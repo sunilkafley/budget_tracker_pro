@@ -249,6 +249,8 @@ export function DashboardScreen({ navigation }: any) {
         title="View Budgets"
         onPress={() => navigation.navigate("BudgetList")}
       />
+
+      <Button title="Reports" onPress={() => navigation.navigate("Reports")} />
     </ScrollView>
   );
 }

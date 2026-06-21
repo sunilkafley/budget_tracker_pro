@@ -105,3 +105,64 @@ describe("AnalyticsService", () => {
     expect(result).toBe(false);
   });
 });
+
+describe("calculateSavingsRate", () => {
+  it("should return 0 when income is 0", () => {
+    const result = AnalyticsService.calculateSavingsRate(0, 100);
+
+    expect(result).toBe(0);
+  });
+
+  it("should calculate savings rate correctly", () => {
+    const result = AnalyticsService.calculateSavingsRate(5000, 3000);
+
+    expect(result).toBe(40);
+  });
+
+  it("should return negative percentage when expenses exceed income", () => {
+    const result = AnalyticsService.calculateSavingsRate(2000, 3000);
+
+    expect(result).toBe(-50);
+  });
+});
+
+describe("getCategoryBreakdown", () => {
+  it("should return empty array when no expenses exist", () => {
+    const result = AnalyticsService.getCategoryBreakdown([]);
+
+    expect(result).toEqual([]);
+  });
+
+  it("should group expenses by category", () => {
+    const groceryCategory = new Category(
+      "1",
+      "Groceries",
+      CategoryType.GROCERY,
+    );
+
+    const transportCategory = new Category(
+      "2",
+      "Transport",
+      CategoryType.TRANSPORT,
+    );
+
+    const expenses = [
+      new Expense("1", "Food", 100, new Date(), groceryCategory),
+      new Expense("2", "More Food", 50, new Date(), groceryCategory),
+      new Expense("3", "Fuel", 80, new Date(), transportCategory),
+    ];
+
+    const result = AnalyticsService.getCategoryBreakdown(expenses);
+
+    expect(result).toEqual([
+      {
+        category: "Groceries",
+        amount: 150,
+      },
+      {
+        category: "Transport",
+        amount: 80,
+      },
+    ]);
+  });
+});

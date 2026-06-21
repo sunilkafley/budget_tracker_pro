@@ -6,6 +6,7 @@ import { AddExpenseScreen } from "../screens/AddExpenseScreen";
 import { AddIncomeScreen } from "../screens/AddIncomeScreen";
 import CreateBudgetScreen from "../screens/CreateBudgetScreen";
 import BudgetListScreen from "../screens/BudgetListScreen";
+import ReportsScreen from "../screens/ReportsScreen";
 
 export type RootStackParamList = {
   Dashboard: undefined;
@@ -21,6 +22,7 @@ export type RootStackParamList = {
   CreateBudget: undefined;
 
   BudgetList: undefined;
+  Reports: undefined;
 };
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -36,6 +38,7 @@ export function AppNavigator() {
 
         <Stack.Screen name="CreateBudget" component={CreateBudgetScreen} />
         <Stack.Screen name="BudgetList" component={BudgetListScreen} />
+        <Stack.Screen name="Reports" component={ReportsScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

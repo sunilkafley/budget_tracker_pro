@@ -66,4 +66,28 @@ export class AnalyticsService {
   static isOverBudget(spentAmount: number, budgetAmount: number): boolean {
     return spentAmount > budgetAmount;
   }
+  static calculateSavingsRate(income: number, expenses: number): number {
+    if (income === 0) {
+      return 0;
+    }
+
+    return ((income - expenses) / income) * 100;
+  }
+  static getCategoryBreakdown(expenses: Expense[]): {
+    category: string;
+    amount: number;
+  }[] {
+    const totals: Record<string, number> = {};
+
+    expenses.forEach((expense) => {
+      const categoryName = expense.category.name;
+
+      totals[categoryName] = (totals[categoryName] || 0) + expense.amount;
+    });
+
+    return Object.entries(totals).map(([category, amount]) => ({
+      category,
+      amount,
+    }));
+  }
 }
