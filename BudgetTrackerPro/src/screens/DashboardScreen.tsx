@@ -1,6 +1,13 @@
 import React, { useState, useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
-import { View, Text, StyleSheet, Button, Alert } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Button,
+  Alert,
+  ScrollView,
+} from "react-native";
 
 import { useRepositories } from "../context/RepositoryContext";
 
@@ -120,7 +127,10 @@ export function DashboardScreen({ navigation }: any) {
   );
 
   return (
-    <View style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.scrollContent}
+    >
       <Text style={styles.title}>Budget Tracker Pro</Text>
 
       <View style={styles.card}>
@@ -195,7 +205,7 @@ export function DashboardScreen({ navigation }: any) {
           );
 
           return (
-            <View key={budget.category.id} style={styles.budgetCard}>
+            <View key={budget.budgetId} style={styles.budgetCard}>
               <Text style={styles.budgetTitle}>{budget.category.name}</Text>
 
               <Text>
@@ -239,7 +249,7 @@ export function DashboardScreen({ navigation }: any) {
         title="View Budgets"
         onPress={() => navigation.navigate("BudgetList")}
       />
-    </View>
+    </ScrollView>
   );
 }
 
@@ -308,5 +318,9 @@ const styles = StyleSheet.create({
   warningText: {
     color: "red",
     fontWeight: "bold",
+  },
+
+  scrollContent: {
+    paddingBottom: 40,
   },
 });

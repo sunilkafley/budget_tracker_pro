@@ -53,6 +53,7 @@ export class AnalyticsService {
           : Math.round((spentAmount / budget.limitAmount) * 100);
 
       return {
+        budgetId: budget.id,
         category: budget.category,
         budgetAmount: budget.limitAmount,
         spentAmount,

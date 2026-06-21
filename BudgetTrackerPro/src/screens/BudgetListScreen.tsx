@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, FlatList, StyleSheet } from "react-native";
+import { View, Text, FlatList, StyleSheet, Button, Alert } from "react-native";
 
 import { useFocusEffect } from "@react-navigation/native";
 import { useCallback } from "react";
@@ -10,8 +10,8 @@ import { useRepositories } from "../context/RepositoryContext";
 
 import { GetAllBudgetsUseCase } from "../application/useCases/GetAllBudgetsUseCase";
 
-export default function BudgetListScreen() {
-  const { budgetRepository } = useRepositories();
+export default function BudgetListScreen({ navigation }: any) {
+  const { budgetRepository, deleteBudgetUseCase } = useRepositories();
 
   const [budgets, setBudgets] = useState<Budget[]>([]);
 
@@ -29,6 +29,26 @@ export default function BudgetListScreen() {
     }, []),
   );
 
+  const handleDeleteBudget = (id: string) => {
+    Alert.alert("Delete Budget", "Are you sure?", [
+      {
+        text: "Cancel",
+        style: "cancel",
+      },
+
+      {
+        text: "Delete",
+        style: "destructive",
+
+        onPress: async () => {
+          await deleteBudgetUseCase.execute(id);
+
+          await loadBudgets();
+        },
+      },
+    ]);
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Budgets</Text>
@@ -38,11 +58,31 @@ export default function BudgetListScreen() {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.card}>
+            {/* Budget category */}
             <Text style={styles.category}>{item.category.name}</Text>
 
+            {/* Budget limit */}
             <Text>Limit: ${item.limitAmount}</Text>
 
+            {/* Budget frequency */}
             <Text>{item.frequency}</Text>
+
+            {/* Budget actions */}
+            <View style={styles.buttonRow}>
+              <Button
+                title="Edit"
+                onPress={() =>
+                  navigation.navigate("CreateBudget", {
+                    budgetId: item.id,
+                  })
+                }
+              />
+
+              <Button
+                title="Delete"
+                onPress={() => handleDeleteBudget(item.id)}
+              />
+            </View>
           </View>
         )}
         ListEmptyComponent={<Text>No budgets created yet</Text>}
@@ -74,5 +114,11 @@ const styles = StyleSheet.create({
   category: {
     fontSize: 18,
     fontWeight: "bold",
+  },
+
+  buttonRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 10,
   },
 });
