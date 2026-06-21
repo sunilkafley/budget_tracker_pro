@@ -2,4 +2,5 @@ export const StorageKeys = {
   INCOMES: "INCOMES",
   EXPENSES: "EXPENSES",
   BUDGETS: "BUDGETS",
+  RECURRING_PAYMENTS: "RECURRING_PAYMENTS",
 } as const;
