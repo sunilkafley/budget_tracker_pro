@@ -7,8 +7,17 @@ import { useRepositories } from "../context/RepositoryContext";
 import { Income } from "../domain/models/Income";
 import { Expense } from "../domain/models/Expense";
 
+import { Budget } from "../domain/models/Budget";
+
+import { GetAllBudgetsUseCase } from "../application/useCases/GetAllBudgetsUseCase";
+
+import { AnalyticsService } from "../domain/services/AnalyticsService";
+
+import { BudgetUsage } from "../application/dto/BudgetUsage";
+
 export function DashboardScreen({ navigation }: any) {
   const {
+    budgetRepository,
     getDashboardSummaryUseCase,
     getAllIncomesUseCase,
     getAllExpensesUseCase,
@@ -25,19 +34,41 @@ export function DashboardScreen({ navigation }: any) {
     upcomingPaymentsCount: 0,
   });
 
+  const [budgets, setBudgets] = useState<Budget[]>([]);
+
+  const [budgetUsage, setBudgetUsage] = useState<BudgetUsage[]>([]);
+
   const [incomes, setIncomes] = useState<Income[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
 
   const loadDashboard = async () => {
+    // Load dashboard summary
     const summaryResult = await getDashboardSummaryUseCase.execute();
 
+    // Load incomes
     const incomesResult = await getAllIncomesUseCase.execute();
 
+    // Load expenses
     const expensesResult = await getAllExpensesUseCase.execute();
 
+    // Load budgets
+    const budgetsResult = await new GetAllBudgetsUseCase(
+      budgetRepository,
+    ).execute();
+
+    // Calculate budget usage
+    const usageResult = AnalyticsService.calculateBudgetUsage(
+      budgetsResult,
+      expensesResult,
+    );
+
+    // Update state
     setSummary(summaryResult);
     setIncomes(incomesResult);
     setExpenses(expensesResult);
+
+    setBudgets(budgetsResult);
+    setBudgetUsage(usageResult);
   };
 
   const handleDeleteIncome = async (id: string) => {
@@ -152,6 +183,26 @@ export function DashboardScreen({ navigation }: any) {
         </View>
       ))}
 
+      <Text style={styles.sectionTitle}>Budget Overview</Text>
+
+      {budgetUsage.length === 0 ? (
+        <Text>No budgets created yet</Text>
+      ) : (
+        budgetUsage.map((budget) => (
+          <View key={budget.category.id} style={styles.budgetCard}>
+            <Text style={styles.budgetTitle}>{budget.category.name}</Text>
+
+            <Text>
+              ${budget.spentAmount} / ${budget.budgetAmount}
+            </Text>
+
+            <Text>Remaining: ${budget.remainingAmount}</Text>
+
+            <Text>{budget.percentageUsed}% Used</Text>
+          </View>
+        ))
+      )}
+
       <Button
         title="Add Expense"
         onPress={() => navigation.navigate("AddExpense")}
@@ -216,5 +267,18 @@ const styles = StyleSheet.create({
 
   spacer: {
     height: 10,
+  },
+
+  budgetCard: {
+    padding: 12,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+
+  budgetTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });
