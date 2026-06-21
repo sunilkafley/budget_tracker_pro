@@ -33,7 +33,7 @@ export default function CreateBudgetScreen() {
 
       Alert.alert("Success", "Budget created successfully");
 
-      setAmount("");
+      navigation.navigate("BudgetList");
     } catch (error) {
       Alert.alert(
         "Error",

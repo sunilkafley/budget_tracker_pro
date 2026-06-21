@@ -168,6 +168,11 @@ export function DashboardScreen({ navigation }: any) {
         title="Create Budget"
         onPress={() => navigation.navigate("CreateBudget")}
       />
+
+      <Button
+        title="View Budgets"
+        onPress={() => navigation.navigate("BudgetList")}
+      />
     </View>
   );
 }
