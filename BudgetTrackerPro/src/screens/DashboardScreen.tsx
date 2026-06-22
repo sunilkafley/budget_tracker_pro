@@ -21,6 +21,9 @@ import { GetAllBudgetsUseCase } from "../application/useCases/GetAllBudgetsUseCa
 import { AnalyticsService } from "../domain/services/AnalyticsService";
 
 import { BudgetUsage } from "../application/dto/BudgetUsage";
+import { RecurringPayment } from "../domain/models/RecurringPayment";
+
+import { getDaysUntil } from "../utils/dateUtils";
 
 export function DashboardScreen({ navigation }: any) {
   const {
@@ -31,6 +34,7 @@ export function DashboardScreen({ navigation }: any) {
 
     deleteIncomeUseCase,
     deleteExpenseUseCase,
+    getUpcomingPaymentsUseCase,
   } = useRepositories();
 
   const [summary, setSummary] = useState({
@@ -47,6 +51,10 @@ export function DashboardScreen({ navigation }: any) {
 
   const [incomes, setIncomes] = useState<Income[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  // Upcoming recurring payments
+  const [upcomingPayments, setUpcomingPayments] = useState<RecurringPayment[]>(
+    [],
+  );
 
   const loadDashboard = async () => {
     // Load dashboard summary
@@ -76,6 +84,13 @@ export function DashboardScreen({ navigation }: any) {
 
     setBudgets(budgetsResult);
     setBudgetUsage(usageResult);
+  };
+
+  const loadUpcomingPayments = async () => {
+    const payments = await getUpcomingPaymentsUseCase.execute();
+
+    // Show only first 3 payments
+    setUpcomingPayments(payments.slice(0, 3));
   };
 
   const handleDeleteIncome = async (id: string) => {
@@ -123,6 +138,7 @@ export function DashboardScreen({ navigation }: any) {
   useFocusEffect(
     useCallback(() => {
       loadDashboard();
+      loadUpcomingPayments();
     }, []),
   );
 
@@ -228,6 +244,36 @@ export function DashboardScreen({ navigation }: any) {
         })
       )}
 
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Upcoming Payments</Text>
+
+        {upcomingPayments.length === 0 ? (
+          <Text>No upcoming payments.</Text>
+        ) : (
+          upcomingPayments.map((payment) => {
+            const daysUntil = getDaysUntil(payment.nextDueDate);
+
+            return (
+              <View key={payment.id} style={styles.paymentCard}>
+                <Text style={styles.paymentName}>{payment.name}</Text>
+
+                <Text>${payment.amount.toFixed(2)}</Text>
+
+                <Text>
+                  {daysUntil < 0
+                    ? `${Math.abs(daysUntil)} day${Math.abs(daysUntil) === 1 ? "" : "s"} overdue`
+                    : daysUntil === 0
+                      ? "Due today"
+                      : daysUntil === 1
+                        ? "Due tomorrow"
+                        : `Due in ${daysUntil} days`}
+                </Text>
+              </View>
+            );
+          })
+        )}
+      </View>
+
       <Button
         title="Add Expense"
         onPress={() => navigation.navigate("AddExpense")}
@@ -328,5 +374,21 @@ const styles = StyleSheet.create({
 
   scrollContent: {
     paddingBottom: 40,
+  },
+  section: {
+    marginTop: 20,
+  },
+
+  paymentCard: {
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 10,
+  },
+
+  paymentName: {
+    fontWeight: "bold",
+    marginBottom: 4,
   },
 });
