@@ -24,6 +24,7 @@ import { BudgetUsage } from "../application/dto/BudgetUsage";
 import { RecurringPayment } from "../domain/models/RecurringPayment";
 
 import { getDaysUntil } from "../utils/dateUtils";
+import { getRecurringPaymentStatus } from "../utils/recurringPaymentStatusUtils";
 
 export function DashboardScreen({ navigation }: any) {
   const {
@@ -252,20 +253,16 @@ export function DashboardScreen({ navigation }: any) {
           upcomingPayments.map((payment) => {
             const daysUntil = getDaysUntil(payment.nextDueDate);
 
+            const status = getRecurringPaymentStatus(daysUntil);
+
             return (
               <View key={payment.id} style={styles.paymentCard}>
                 <Text style={styles.paymentName}>{payment.name}</Text>
 
                 <Text>${payment.amount.toFixed(2)}</Text>
 
-                <Text>
-                  {daysUntil < 0
-                    ? `${Math.abs(daysUntil)} day${Math.abs(daysUntil) === 1 ? "" : "s"} overdue`
-                    : daysUntil === 0
-                      ? "Due today"
-                      : daysUntil === 1
-                        ? "Due tomorrow"
-                        : `Due in ${daysUntil} days`}
+                <Text style={styles.paymentStatus}>
+                  {status.indicator} {status.label}
                 </Text>
               </View>
             );
@@ -389,5 +386,9 @@ const styles = StyleSheet.create({
   paymentName: {
     fontWeight: "bold",
     marginBottom: 4,
+  },
+  paymentStatus: {
+    marginTop: 4,
+    fontSize: 14,
   },
 });
