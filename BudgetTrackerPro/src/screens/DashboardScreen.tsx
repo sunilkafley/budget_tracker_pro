@@ -89,7 +89,6 @@ export function DashboardScreen({ navigation }: any) {
   const loadUpcomingPayments = async () => {
     const payments = await getUpcomingPaymentsUseCase.execute();
 
-    // Show only first 3 payments
     setUpcomingPayments(payments.slice(0, 3));
   };
 

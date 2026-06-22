@@ -25,6 +25,7 @@ import { UpdateRecurringPaymentUseCase } from "../application/useCases/UpdateRec
 import { DeleteRecurringPaymentUseCase } from "../application/useCases/DeleteRecurringPaymentUseCase";
 import { GetAllRecurringPaymentsUseCase } from "../application/useCases/GetAllRecurringPaymentsUseCase";
 import { GetUpcomingPaymentsUseCase } from "../application/useCases/GetUpcomingPaymentsUseCase";
+import { ProcessRecurringPaymentsUseCase } from "../application/useCases/ProcessRecurringPaymentsUseCase";
 
 const expenseRepository = new AsyncExpenseRepository();
 const incomeRepository = new AsyncIncomeRepository();
@@ -80,6 +81,9 @@ const repositoryContextValue = {
   ),
   // Dashboard widget use case
   getUpcomingPaymentsUseCase: new GetUpcomingPaymentsUseCase(
+    recurringPaymentRepository,
+  ),
+  processRecurringPaymentsUseCase: new ProcessRecurringPaymentsUseCase(
     recurringPaymentRepository,
   ),
 };
