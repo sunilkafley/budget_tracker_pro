@@ -251,6 +251,10 @@ export function DashboardScreen({ navigation }: any) {
       />
 
       <Button title="Reports" onPress={() => navigation.navigate("Reports")} />
+      <Button
+        title="Recurring Payments"
+        onPress={() => navigation.navigate("RecurringPayments")}
+      />
     </ScrollView>
   );
 }
