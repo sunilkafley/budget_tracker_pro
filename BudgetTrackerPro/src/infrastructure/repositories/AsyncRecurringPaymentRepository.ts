@@ -44,6 +44,7 @@ export class AsyncRecurringPaymentRepository implements IRecurringPaymentReposit
           payment.id,
           payment.name,
           payment.amount,
+          payment.category,
           payment.frequency,
           new Date(payment.nextDueDate),
         ),

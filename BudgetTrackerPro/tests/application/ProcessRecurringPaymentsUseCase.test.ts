@@ -5,6 +5,7 @@ import { FakeRecurringPaymentRepository } from "../../src/infrastructure/reposit
 import { RecurringPayment } from "../../src/domain/models/RecurringPayment";
 
 import { Frequency } from "../../src/domain/enums/Frequency";
+import { CategoryType } from "../../src/domain/enums/CategoryType";
 
 describe("ProcessRecurringPaymentsUseCase", () => {
   it("should advance an overdue monthly payment", async () => {
@@ -14,6 +15,7 @@ describe("ProcessRecurringPaymentsUseCase", () => {
       "1",
       "Netflix",
       19.99,
+      CategoryType.ENTERTAINMENT,
       Frequency.MONTHLY,
       new Date("2025-01-01"),
     );
@@ -36,6 +38,7 @@ describe("ProcessRecurringPaymentsUseCase", () => {
       "1",
       "Gym Membership",
       15,
+      CategoryType.FITNESS,
       Frequency.WEEKLY,
       new Date("2025-01-01"),
     );
@@ -64,6 +67,7 @@ describe("ProcessRecurringPaymentsUseCase", () => {
       "1",
       "Spotify",
       14.99,
+      CategoryType.ENTERTAINMENT,
       Frequency.MONTHLY,
       futureDate,
     );

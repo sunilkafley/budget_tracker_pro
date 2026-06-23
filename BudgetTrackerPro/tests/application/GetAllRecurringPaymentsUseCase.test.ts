@@ -5,6 +5,7 @@ import { FakeRecurringPaymentRepository } from "../../src/infrastructure/reposit
 import { RecurringPayment } from "../../src/domain/models/RecurringPayment";
 
 import { Frequency } from "../../src/domain/enums/Frequency";
+import { CategoryType } from "../../src/domain/enums/CategoryType";
 
 describe("GetAllRecurringPaymentsUseCase", () => {
   it("should return all recurring payments", async () => {
@@ -15,6 +16,7 @@ describe("GetAllRecurringPaymentsUseCase", () => {
         "1",
         "Netflix",
         19.99,
+        CategoryType.ENTERTAINMENT,
         Frequency.MONTHLY,
         new Date(),
       ),

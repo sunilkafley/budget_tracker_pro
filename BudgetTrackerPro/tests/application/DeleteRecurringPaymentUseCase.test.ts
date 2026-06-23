@@ -5,6 +5,7 @@ import { FakeRecurringPaymentRepository } from "../../src/infrastructure/reposit
 import { RecurringPayment } from "../../src/domain/models/RecurringPayment";
 
 import { Frequency } from "../../src/domain/enums/Frequency";
+import { CategoryType } from "../../src/domain/enums/CategoryType";
 
 describe("DeleteRecurringPaymentUseCase", () => {
   it("should delete payment", async () => {
@@ -14,6 +15,7 @@ describe("DeleteRecurringPaymentUseCase", () => {
       "1",
       "Netflix",
       19.99,
+      CategoryType.ENTERTAINMENT,
       Frequency.MONTHLY,
       new Date(),
     );

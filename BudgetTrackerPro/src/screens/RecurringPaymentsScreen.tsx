@@ -9,8 +9,11 @@ import { RecurringPayment } from "../domain/models/RecurringPayment";
 import { useRepositories } from "../context/RepositoryContext";
 
 export function RecurringPaymentsScreen({ navigation }: any) {
-  const { getAllRecurringPaymentsUseCase, deleteRecurringPaymentUseCase } =
-    useRepositories();
+  const {
+    getAllRecurringPaymentsUseCase,
+    deleteRecurringPaymentUseCase,
+    completeRecurringPaymentUseCase,
+  } = useRepositories();
 
   const [payments, setPayments] = useState<RecurringPayment[]>([]);
 
@@ -26,6 +29,24 @@ export function RecurringPaymentsScreen({ navigation }: any) {
     }, []),
   );
 
+  const handleCompletePayment = (id: string) => {
+    Alert.alert("Complete Payment", "Create expense and advance due date?", [
+      {
+        text: "Cancel",
+        style: "cancel",
+      },
+      {
+        text: "Confirm",
+        onPress: async () => {
+          await completeRecurringPaymentUseCase.execute(id);
+
+          await loadPayments();
+
+          Alert.alert("Success", "Payment completed successfully.");
+        },
+      },
+    ]);
+  };
   const handleDelete = (id: string) => {
     Alert.alert(
       "Delete Payment",
@@ -69,6 +90,7 @@ export function RecurringPaymentsScreen({ navigation }: any) {
             <Text>Amount: ${item.amount.toFixed(2)}</Text>
 
             <Text>Frequency: {item.frequency}</Text>
+            <Text>Category: {item.category}</Text>
 
             <Text>Due: {item.nextDueDate.toLocaleDateString()}</Text>
 
@@ -83,6 +105,10 @@ export function RecurringPaymentsScreen({ navigation }: any) {
               />
 
               <Button title="Delete" onPress={() => handleDelete(item.id)} />
+              <Button
+                title="Complete"
+                onPress={() => handleCompletePayment(item.id)}
+              />
             </View>
           </View>
         )}

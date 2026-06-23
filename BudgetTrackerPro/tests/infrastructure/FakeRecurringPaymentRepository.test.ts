@@ -3,6 +3,7 @@ import { FakeRecurringPaymentRepository } from "../../src/infrastructure/reposit
 import { RecurringPayment } from "../../src/domain/models/RecurringPayment";
 
 import { Frequency } from "../../src/domain/enums/Frequency";
+import { CategoryType } from "../../src/domain/enums/CategoryType";
 
 describe("FakeRecurringPaymentRepository", () => {
   let repository: FakeRecurringPaymentRepository;
@@ -16,6 +17,7 @@ describe("FakeRecurringPaymentRepository", () => {
       "1",
       "Netflix",
       19.99,
+      CategoryType.ENTERTAINMENT,
       Frequency.MONTHLY,
       new Date(),
     );
@@ -32,6 +34,7 @@ describe("FakeRecurringPaymentRepository", () => {
       "1",
       "Netflix",
       19.99,
+      CategoryType.ENTERTAINMENT,
       Frequency.MONTHLY,
       new Date(),
     );
@@ -42,6 +45,7 @@ describe("FakeRecurringPaymentRepository", () => {
       "1",
       "Netflix Premium",
       25,
+      CategoryType.ENTERTAINMENT,
       Frequency.MONTHLY,
       new Date(),
     );
@@ -58,6 +62,7 @@ describe("FakeRecurringPaymentRepository", () => {
       "1",
       "Netflix",
       19.99,
+      CategoryType.ENTERTAINMENT,
       Frequency.MONTHLY,
       new Date(),
     );
@@ -76,6 +81,7 @@ describe("FakeRecurringPaymentRepository", () => {
       "1",
       "Netflix",
       19.99,
+      CategoryType.ENTERTAINMENT,
       Frequency.MONTHLY,
       new Date(),
     );

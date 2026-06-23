@@ -12,6 +12,7 @@ import {
 import { Frequency } from "../domain/enums/Frequency";
 import { createRecurringPayment } from "../utils/RecurringPaymentFactory";
 import { useRepositories } from "../context/RepositoryContext";
+import { CategoryType } from "../domain/enums/CategoryType";
 
 export default function CreateRecurringPaymentScreen({
   navigation,
@@ -29,6 +30,7 @@ export default function CreateRecurringPaymentScreen({
   const [amount, setAmount] = useState("");
 
   const [frequency, setFrequency] = useState<Frequency>(Frequency.MONTHLY);
+  const [category, setCategory] = useState<CategoryType>(CategoryType.OTHER);
 
   const [nextDueDate, setNextDueDate] = useState(
     new Date().toISOString().split("T")[0],
@@ -50,6 +52,7 @@ export default function CreateRecurringPaymentScreen({
       setName(payment.name);
       setAmount(payment.amount.toString());
       setFrequency(payment.frequency);
+      setCategory(payment.category);
 
       setNextDueDate(payment.nextDueDate.toISOString().split("T")[0]);
     };
@@ -82,6 +85,7 @@ export default function CreateRecurringPaymentScreen({
         existingPayment.name = name;
         existingPayment.amount = amountValue;
         existingPayment.frequency = frequency;
+        existingPayment.category = category;
         existingPayment.nextDueDate = new Date(nextDueDate);
 
         await updateRecurringPaymentUseCase.execute(existingPayment);
@@ -89,6 +93,7 @@ export default function CreateRecurringPaymentScreen({
         const payment = createRecurringPayment(
           name,
           amountValue,
+          category,
           frequency,
           new Date(nextDueDate),
         );
@@ -131,6 +136,22 @@ export default function CreateRecurringPaymentScreen({
         value={nextDueDate}
         onChangeText={setNextDueDate}
       />
+      <Text style={styles.label}>Category</Text>
+
+      <Button
+        title={`Category: ${category}`}
+        onPress={() => {
+          const categories = Object.values(CategoryType);
+
+          const currentIndex = categories.indexOf(category);
+
+          const nextIndex = (currentIndex + 1) % categories.length;
+
+          setCategory(categories[nextIndex]);
+        }}
+      />
+
+      <View style={styles.spacing} />
 
       <Text style={styles.label}>Frequency</Text>
 

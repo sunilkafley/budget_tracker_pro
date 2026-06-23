@@ -26,6 +26,7 @@ import { DeleteRecurringPaymentUseCase } from "../application/useCases/DeleteRec
 import { GetAllRecurringPaymentsUseCase } from "../application/useCases/GetAllRecurringPaymentsUseCase";
 import { GetUpcomingPaymentsUseCase } from "../application/useCases/GetUpcomingPaymentsUseCase";
 import { ProcessRecurringPaymentsUseCase } from "../application/useCases/ProcessRecurringPaymentsUseCase";
+import { CompleteRecurringPaymentUseCase } from "../application/useCases/CompleteRecurringPaymentUseCase";
 
 const expenseRepository = new AsyncExpenseRepository();
 const incomeRepository = new AsyncIncomeRepository();
@@ -85,6 +86,11 @@ const repositoryContextValue = {
   ),
   processRecurringPaymentsUseCase: new ProcessRecurringPaymentsUseCase(
     recurringPaymentRepository,
+  ),
+
+  completeRecurringPaymentUseCase: new CompleteRecurringPaymentUseCase(
+    recurringPaymentRepository,
+    expenseRepository,
   ),
 };
 

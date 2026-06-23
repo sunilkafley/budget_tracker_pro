@@ -36,6 +36,7 @@ export function DashboardScreen({ navigation }: any) {
     deleteIncomeUseCase,
     deleteExpenseUseCase,
     getUpcomingPaymentsUseCase,
+    completeRecurringPaymentUseCase,
   } = useRepositories();
 
   const [summary, setSummary] = useState({
@@ -133,6 +134,32 @@ export function DashboardScreen({ navigation }: any) {
         },
       },
     ]);
+  };
+
+  const handleCompletePayment = (payment: RecurringPayment) => {
+    Alert.alert(
+      "Complete Payment",
+      `${payment.name}\n\nAmount: $${payment.amount.toFixed(
+        2,
+      )}\n\nThis will create an expense and advance the next due date.`,
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Confirm",
+          onPress: async () => {
+            await completeRecurringPaymentUseCase.execute(payment.id);
+
+            await loadDashboard();
+            await loadUpcomingPayments();
+
+            Alert.alert("Success", "Payment completed successfully.");
+          },
+        },
+      ],
+    );
   };
 
   useFocusEffect(
@@ -260,10 +287,15 @@ export function DashboardScreen({ navigation }: any) {
                 <Text style={styles.paymentName}>{payment.name}</Text>
 
                 <Text>${payment.amount.toFixed(2)}</Text>
+                <Text>{payment.category}</Text>
 
                 <Text style={styles.paymentStatus}>
                   {status.indicator} {status.label}
                 </Text>
+                <Button
+                  title="Complete Payment"
+                  onPress={() => handleCompletePayment(payment)}
+                />
               </View>
             );
           })

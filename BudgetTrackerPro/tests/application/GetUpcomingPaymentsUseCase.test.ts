@@ -5,6 +5,7 @@ import { FakeRecurringPaymentRepository } from "../../src/infrastructure/reposit
 import { RecurringPayment } from "../../src/domain/models/RecurringPayment";
 
 import { Frequency } from "../../src/domain/enums/Frequency";
+import { CategoryType } from "../../src/domain/enums/CategoryType";
 
 describe("GetUpcomingPaymentsUseCase", () => {
   it("should return payments sorted by due date", async () => {
@@ -14,6 +15,7 @@ describe("GetUpcomingPaymentsUseCase", () => {
       "1",
       "Spotify",
       15,
+      CategoryType.ENTERTAINMENT,
       Frequency.MONTHLY,
       new Date("2026-07-10"),
     );
@@ -22,6 +24,7 @@ describe("GetUpcomingPaymentsUseCase", () => {
       "2",
       "Netflix",
       20,
+      CategoryType.ENTERTAINMENT,
       Frequency.MONTHLY,
       new Date("2026-07-01"),
     );
@@ -30,6 +33,7 @@ describe("GetUpcomingPaymentsUseCase", () => {
       "3",
       "Rent",
       500,
+      CategoryType.HOUSING,
       Frequency.MONTHLY,
       new Date("2026-07-05"),
     );
