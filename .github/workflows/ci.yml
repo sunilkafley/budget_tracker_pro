@@ -28,7 +28,11 @@ jobs:
           cache-dependency-path: BudgetTrackerPro/package-lock.json
       - name: Install dependencies
         run: npm ci
+      - name: Check Expo dependencies
+        run: npx expo install --check
       - name: Type check
         run: npx tsc --noEmit
       - name: Run tests
         run: npm test -- --watch=false --runInBand
+      - name: Bundle iOS JavaScript
+        run: npx expo export --platform ios --output-dir "${{ runner.temp }}/budget-tracker-ios-export"
