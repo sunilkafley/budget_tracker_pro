@@ -22,6 +22,12 @@ deleted parent README belong to the user and are excluded from this change.
 
 ## Feature audit
 
+This table records the initial audit. The subsequent
+[financial accuracy sprint](financial-accuracy-sprint.md) supersedes its
+amount-validation and arithmetic findings, adds Date/category validation and
+loading/error feedback to affected calculation screens. Other listed gaps
+remain unless explicitly addressed in those sprint notes.
+
 | Area | Status | Verified implementation and remaining gaps |
 | --- | --- | --- |
 | Architecture and wiring | Implemented, needs improvement | App mounts RepositoryProvider and stack navigation; use cases receive repository implementations. Screens do not import AsyncStorage. Screens still read repositories and instantiate some use cases directly. AnalyticsService imports an application DTO into domain, reversing the intended dependency direction. RepositoryProvider.tsx is empty; the active provider is in RepositoryContext.tsx. |

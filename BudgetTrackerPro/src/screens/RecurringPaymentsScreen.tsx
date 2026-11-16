@@ -38,11 +38,13 @@ export function RecurringPaymentsScreen({ navigation }: any) {
       {
         text: "Confirm",
         onPress: async () => {
-          await completeRecurringPaymentUseCase.execute(id);
-
-          await loadPayments();
-
-          Alert.alert("Success", "Payment completed successfully.");
+          try {
+            await completeRecurringPaymentUseCase.execute(id);
+            await loadPayments();
+            Alert.alert("Success", "Payment completed successfully.");
+          } catch (error) {
+            Alert.alert("Error", error instanceof Error ? error.message : "Unable to complete payment.");
+          }
         },
       },
     ]);

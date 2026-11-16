@@ -4,6 +4,8 @@ import { IExpenseRepository } from "../../domain/repositories/IExpenseRepository
 import { AnalyticsService } from "../../domain/services/AnalyticsService";
 
 import { SavingsInsights } from "../dto/SavingsInsights";
+import { ReportService } from "../../domain/services/ReportService";
+import { Money } from "../../domain/services/Money";
 
 export class GetSavingsInsightsUseCase {
   constructor(
@@ -16,14 +18,11 @@ export class GetSavingsInsightsUseCase {
 
     const expenses = await this.expenseRepository.getAll();
 
-    const totalIncome = incomes.reduce((sum, income) => sum + income.amount, 0);
+    const totalIncome = ReportService.calculateTotalIncome(incomes);
 
-    const totalExpenses = expenses.reduce(
-      (sum, expense) => sum + expense.amount,
-      0,
-    );
+    const totalExpenses = ReportService.calculateTotalExpenses(expenses);
 
-    const savings = totalIncome - totalExpenses;
+    const savings = Money.subtract(totalIncome, totalExpenses);
 
     const savingsRate = AnalyticsService.calculateSavingsRate(
       totalIncome,

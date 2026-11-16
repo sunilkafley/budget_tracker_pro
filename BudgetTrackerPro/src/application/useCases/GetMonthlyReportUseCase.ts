@@ -2,6 +2,8 @@ import { IIncomeRepository } from "../../domain/repositories/IIncomeRepository";
 import { IExpenseRepository } from "../../domain/repositories/IExpenseRepository";
 
 import { MonthlyReport } from "../dto/MonthlyReport";
+import { ReportService } from "../../domain/services/ReportService";
+import { Money } from "../../domain/services/Money";
 
 export class GetMonthlyReportUseCase {
   constructor(
@@ -14,17 +16,14 @@ export class GetMonthlyReportUseCase {
 
     const expenses = await this.expenseRepository.getAll();
 
-    const totalIncome = incomes.reduce((sum, income) => sum + income.amount, 0);
+    const totalIncome = ReportService.calculateTotalIncome(incomes);
 
-    const totalExpenses = expenses.reduce(
-      (sum, expense) => sum + expense.amount,
-      0,
-    );
+    const totalExpenses = ReportService.calculateTotalExpenses(expenses);
 
     return {
       totalIncome,
       totalExpenses,
-      savings: totalIncome - totalExpenses,
+      savings: Money.subtract(totalIncome, totalExpenses),
     };
   }
 }

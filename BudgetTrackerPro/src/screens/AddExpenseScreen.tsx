@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { View, Text, TextInput, Button, Alert, StyleSheet } from "react-native";
 
 import { Expense } from "../domain/models/Expense";
+import { Money } from "../domain/services/Money";
 import { Category } from "../domain/models/Category";
 import { CategoryType } from "../domain/enums/CategoryType";
 
@@ -50,7 +51,7 @@ export function AddExpenseScreen({ navigation, route }: any) {
       const expense = new Expense(
         expenseId ?? Date.now().toString(),
         title,
-        Number(amount),
+        Money.parseInput(amount),
         new Date(),
         category,
       );
@@ -67,7 +68,7 @@ export function AddExpenseScreen({ navigation, route }: any) {
 
       navigation.goBack();
     } catch (error) {
-      Alert.alert("Error", "Unable to save expense");
+      Alert.alert("Error", error instanceof Error ? error.message : "Unable to save expense");
     }
   };
   return (

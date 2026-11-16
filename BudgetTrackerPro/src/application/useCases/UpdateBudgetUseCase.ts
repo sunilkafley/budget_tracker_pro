@@ -1,13 +1,12 @@
 import { Budget } from "../../domain/models/Budget";
+import { FinancialValidation } from "../../domain/services/FinancialValidation";
 import { IBudgetRepository } from "../../domain/repositories/IBudgetRepository";
 
 export class UpdateBudgetUseCase {
   constructor(private readonly budgetRepository: IBudgetRepository) {}
 
   async execute(budget: Budget): Promise<void> {
-    if (budget.limitAmount <= 0) {
-      throw new Error("Budget amount must be greater than zero");
-    }
+    FinancialValidation.budget(budget);
 
     await this.budgetRepository.update(budget);
   }

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { View, Text, TextInput, Button, Alert, StyleSheet } from "react-native";
 
 import { Income } from "../domain/models/Income";
+import { Money } from "../domain/services/Money";
 import { useRepositories } from "../context/RepositoryContext";
 
 export function AddIncomeScreen({ navigation, route }: any) {
@@ -42,7 +43,7 @@ export function AddIncomeScreen({ navigation, route }: any) {
       const income = new Income(
         incomeId ?? Date.now().toString(),
         title,
-        Number(amount),
+        Money.parseInput(amount),
         new Date(),
         source,
       );
@@ -59,7 +60,7 @@ export function AddIncomeScreen({ navigation, route }: any) {
 
       navigation.goBack();
     } catch (error) {
-      Alert.alert("Error", "Unable to save income");
+      Alert.alert("Error", error instanceof Error ? error.message : "Unable to save income");
     }
   };
 

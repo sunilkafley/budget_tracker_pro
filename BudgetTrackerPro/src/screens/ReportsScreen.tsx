@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState } from "react";
 
-import { ScrollView, View, Text, StyleSheet } from "react-native";
+import { ScrollView, View, Text, StyleSheet, Button } from "react-native";
 
 import { Picker } from "@react-native-picker/picker";
 
@@ -22,6 +22,8 @@ export default function ReportsScreen() {
   const years = useMemo(() => getAvailableYears(), []);
 
   const [report, setReport] = useState<Report | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const [selectedMonth, setSelectedMonth] = useState(
     currentDate.getMonth() + 1,
@@ -30,11 +32,17 @@ export default function ReportsScreen() {
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
 
   const loadReport = useCallback(async () => {
-    const useCase = new GetReportUseCase(incomeRepository, expenseRepository);
-
-    const reportData = await useCase.execute(selectedMonth, selectedYear);
-
-    setReport(reportData);
+    setLoading(true);
+    setError(null);
+    setReport(null);
+    try {
+      const useCase = new GetReportUseCase(incomeRepository, expenseRepository);
+      setReport(await useCase.execute(selectedMonth, selectedYear));
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Unable to load report.");
+    } finally {
+      setLoading(false);
+    }
   }, [incomeRepository, expenseRepository, selectedMonth, selectedYear]);
 
   useFocusEffect(
@@ -76,7 +84,14 @@ export default function ReportsScreen() {
         </Picker>
       </View>
 
-      {report && (
+      {loading && <Text>Loading report...</Text>}
+      {error && (
+        <View accessibilityLiveRegion="polite">
+          <Text>Report unavailable: {error}</Text>
+          <Button title="Retry report" onPress={loadReport} />
+        </View>
+      )}
+      {report && !error && !loading && (
         <>
           <View style={styles.card}>
             <Text style={styles.cardTitle}>Monthly Summary</Text>

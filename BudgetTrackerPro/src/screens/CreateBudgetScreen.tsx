@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, Button, Alert, StyleSheet } from "react-native";
 
 import { Budget } from "../domain/models/Budget";
+import { Money } from "../domain/services/Money";
 import { Category } from "../domain/models/Category";
 
 import { CategoryType } from "../domain/enums/CategoryType";
@@ -59,7 +60,7 @@ export default function CreateBudgetScreen({ navigation, route }: any) {
       const budget = new Budget(
         isEditMode ? budgetId : Date.now().toString(),
         category,
-        Number(amount),
+        Money.parseInput(amount),
         Frequency.MONTHLY,
       );
 

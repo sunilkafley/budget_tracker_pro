@@ -1,4 +1,5 @@
 import { Expense } from "../../domain/models/Expense";
+import { FinancialValidation } from "../../domain/services/FinancialValidation";
 import { Category } from "../../domain/models/Category";
 
 import { IExpenseRepository } from "../../domain/repositories/IExpenseRepository";
@@ -19,6 +20,10 @@ export class CompleteRecurringPaymentUseCase {
       throw new Error("Recurring payment not found");
     }
 
+    FinancialValidation.recurringPayment(payment);
+    const nextDueDate = frequencyAdvancers[payment.frequency](payment.nextDueDate);
+    FinancialValidation.date(nextDueDate);
+
     const expense = new Expense(
       Date.now().toString(),
       payment.name,
@@ -29,9 +34,7 @@ export class CompleteRecurringPaymentUseCase {
 
     await this.expenseRepository.save(expense);
 
-    payment.nextDueDate = frequencyAdvancers[payment.frequency](
-      payment.nextDueDate,
-    );
+    payment.nextDueDate = nextDueDate;
 
     await this.recurringPaymentRepository.update(payment);
   }

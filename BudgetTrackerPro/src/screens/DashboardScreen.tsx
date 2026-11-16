@@ -50,6 +50,8 @@ export function DashboardScreen({ navigation }: any) {
   const [budgets, setBudgets] = useState<Budget[]>([]);
 
   const [budgetUsage, setBudgetUsage] = useState<BudgetUsage[]>([]);
+  const [dashboardError, setDashboardError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const [incomes, setIncomes] = useState<Income[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -59,39 +61,35 @@ export function DashboardScreen({ navigation }: any) {
   );
 
   const loadDashboard = async () => {
-    // Load dashboard summary
-    const summaryResult = await getDashboardSummaryUseCase.execute();
-
-    // Load incomes
-    const incomesResult = await getAllIncomesUseCase.execute();
-
-    // Load expenses
-    const expensesResult = await getAllExpensesUseCase.execute();
-
-    // Load budgets
-    const budgetsResult = await new GetAllBudgetsUseCase(
-      budgetRepository,
-    ).execute();
-
-    // Calculate budget usage
-    const usageResult = AnalyticsService.calculateBudgetUsage(
-      budgetsResult,
-      expensesResult,
-    );
-
-    // Update state
-    setSummary(summaryResult);
-    setIncomes(incomesResult);
-    setExpenses(expensesResult);
-
-    setBudgets(budgetsResult);
-    setBudgetUsage(usageResult);
+    setLoading(true);
+    setDashboardError(null);
+    try {
+      const incomesResult = await getAllIncomesUseCase.execute();
+      const expensesResult = await getAllExpensesUseCase.execute();
+      // Keep transactions editable if an unsupported stored amount blocks totals.
+      setIncomes(incomesResult);
+      setExpenses(expensesResult);
+      const budgetsResult = await new GetAllBudgetsUseCase(budgetRepository).execute();
+      const summaryResult = await getDashboardSummaryUseCase.execute();
+      const usageResult = AnalyticsService.calculateBudgetUsage(budgetsResult, expensesResult);
+      setSummary(summaryResult);
+      setBudgets(budgetsResult);
+      setBudgetUsage(usageResult);
+    } catch (error) {
+      setDashboardError(error instanceof Error ? error.message : "Unable to load dashboard.");
+      setBudgetUsage([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const loadUpcomingPayments = async () => {
-    const payments = await getUpcomingPaymentsUseCase.execute();
-
-    setUpcomingPayments(payments.slice(0, 3));
+    try {
+      const payments = await getUpcomingPaymentsUseCase.execute();
+      setUpcomingPayments(payments.slice(0, 3));
+    } catch (error) {
+      Alert.alert("Error", error instanceof Error ? error.message : "Unable to load payments.");
+    }
   };
 
   const handleDeleteIncome = async (id: string) => {
@@ -150,12 +148,14 @@ export function DashboardScreen({ navigation }: any) {
         {
           text: "Confirm",
           onPress: async () => {
-            await completeRecurringPaymentUseCase.execute(payment.id);
-
-            await loadDashboard();
-            await loadUpcomingPayments();
-
-            Alert.alert("Success", "Payment completed successfully.");
+            try {
+              await completeRecurringPaymentUseCase.execute(payment.id);
+              await loadDashboard();
+              await loadUpcomingPayments();
+              Alert.alert("Success", "Payment completed successfully.");
+            } catch (error) {
+              Alert.alert("Error", error instanceof Error ? error.message : "Unable to complete payment.");
+            }
           },
         },
       ],
@@ -176,13 +176,20 @@ export function DashboardScreen({ navigation }: any) {
     >
       <Text style={styles.title}>Budget Tracker Pro</Text>
 
-      <View style={styles.card}>
-        <Text>Total Income: ${summary.totalIncome}</Text>
-
-        <Text>Total Expenses: ${summary.totalExpenses}</Text>
-
-        <Text>Savings: ${summary.savings}</Text>
-      </View>
+      {loading && <Text>Loading dashboard...</Text>}
+      {dashboardError && (
+        <View accessibilityLiveRegion="polite">
+          <Text>Financial totals unavailable: {dashboardError}</Text>
+          <Button title="Retry dashboard" onPress={loadDashboard} />
+        </View>
+      )}
+      {!loading && !dashboardError && (
+        <View style={styles.card}>
+          <Text>Total Income: ${summary.totalIncome}</Text>
+          <Text>Total Expenses: ${summary.totalExpenses}</Text>
+          <Text>Savings: ${summary.savings}</Text>
+        </View>
+      )}
 
       <Text style={styles.sectionTitle}>Recent Incomes</Text>
 
@@ -238,7 +245,9 @@ export function DashboardScreen({ navigation }: any) {
 
       <Text style={styles.sectionTitle}>Budget Overview</Text>
 
-      {budgetUsage.length === 0 ? (
+      {dashboardError || loading ? (
+        <Text>Budget totals unavailable.</Text>
+      ) : budgetUsage.length === 0 ? (
         <Text>No budgets created yet</Text>
       ) : (
         budgetUsage.map((budget) => {

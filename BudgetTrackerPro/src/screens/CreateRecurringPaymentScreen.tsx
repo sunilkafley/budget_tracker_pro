@@ -10,6 +10,7 @@ import {
 } from "react-native";
 
 import { Frequency } from "../domain/enums/Frequency";
+import { Money } from "../domain/services/Money";
 import { createRecurringPayment } from "../utils/RecurringPaymentFactory";
 import { useRepositories } from "../context/RepositoryContext";
 import { CategoryType } from "../domain/enums/CategoryType";
@@ -67,7 +68,7 @@ export default function CreateRecurringPaymentScreen({
         return;
       }
 
-      const amountValue = Number(amount);
+      const amountValue = Money.parseInput(amount);
 
       if (amountValue <= 0) {
         Alert.alert("Validation Error", "Please enter a valid amount.");
@@ -103,7 +104,7 @@ export default function CreateRecurringPaymentScreen({
 
       navigation.navigate("RecurringPayments");
     } catch (error) {
-      Alert.alert("Error", "Unable to save recurring payment.");
+      Alert.alert("Error", error instanceof Error ? error.message : "Unable to save recurring payment.");
     }
   };
 
@@ -141,7 +142,9 @@ export default function CreateRecurringPaymentScreen({
       <Button
         title={`Category: ${category}`}
         onPress={() => {
-          const categories = Object.values(CategoryType);
+          const categories: CategoryType[] = Object.values(CategoryType).filter(
+            (value) => value !== CategoryType.INCOME,
+          );
 
           const currentIndex = categories.indexOf(category);
 

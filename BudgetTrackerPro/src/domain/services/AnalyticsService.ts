@@ -1,4 +1,5 @@
 import { Expense } from "../models/Expense";
+import { Money } from "./Money";
 import { Budget } from "../models/Budget";
 import { RecurringPayment } from "../models/RecurringPayment";
 
@@ -11,7 +12,7 @@ export class AnalyticsService {
     expenses.forEach((expense) => {
       const category = expense.category.name;
 
-      totals[category] = (totals[category] || 0) + expense.amount;
+      totals[category] = Money.sum([totals[category] ?? 0, expense.amount]);
     });
 
     return (
@@ -41,16 +42,16 @@ export class AnalyticsService {
     expenses: Expense[],
   ): BudgetUsage[] {
     return budgets.map((budget) => {
-      const spentAmount = expenses
+      const spentAmount = Money.sum(expenses
         .filter((expense) => expense.category.type === budget.category.type)
-        .reduce((total, expense) => total + expense.amount, 0);
+        .map((expense) => expense.amount));
 
-      const remainingAmount = budget.limitAmount - spentAmount;
+      const remainingAmount = Money.subtract(budget.limitAmount, spentAmount);
 
       const percentageUsed =
         budget.limitAmount === 0
           ? 0
-          : Math.round((spentAmount / budget.limitAmount) * 100);
+          : Math.round((Money.toMinorUnits(spentAmount) / Money.toMinorUnits(budget.limitAmount)) * 100);
 
       return {
         budgetId: budget.id,
@@ -67,11 +68,13 @@ export class AnalyticsService {
     return spentAmount > budgetAmount;
   }
   static calculateSavingsRate(income: number, expenses: number): number {
+    const incomeMinorUnits = Money.toMinorUnits(income);
+    const expensesMinorUnits = Money.toMinorUnits(expenses);
     if (income === 0) {
       return 0;
     }
 
-    return ((income - expenses) / income) * 100;
+    return ((incomeMinorUnits - expensesMinorUnits) / incomeMinorUnits) * 100;
   }
   static getCategoryBreakdown(expenses: Expense[]): {
     category: string;
@@ -82,7 +85,7 @@ export class AnalyticsService {
     expenses.forEach((expense) => {
       const categoryName = expense.category.name;
 
-      totals[categoryName] = (totals[categoryName] || 0) + expense.amount;
+      totals[categoryName] = Money.sum([totals[categoryName] ?? 0, expense.amount]);
     });
 
     return Object.entries(totals).map(([category, amount]) => ({
