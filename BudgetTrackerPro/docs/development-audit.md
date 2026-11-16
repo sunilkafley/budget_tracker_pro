@@ -12,9 +12,12 @@ No prototype or separate sprint notes were found in tracked files.
 
 GitHub's default branch is `main` at `bb68ff3`. It is 19 commits behind the
 development checkout and contains only the early architecture foundation.
-This CI branch starts from that main commit to avoid including those 19
-commits in a CI-only PR. Reconcile the development branch in a separate review;
-do not reset or overwrite it. The original checkout's modified AGENTS.md and
+At the owner's request, this PR now incorporates all 19 existing development
+commits from `expo-upgrade`, alongside CI and the report regression tests.
+The branch originally started from main; a normal merge incorporates the
+development history without force-pushing or rewriting commits. The PR targets
+main and therefore reviews the existing application work as well as CI.
+The original checkout's modified AGENTS.md and
 deleted parent README belong to the user and are excluded from this change.
 
 ## Feature audit
@@ -41,6 +44,15 @@ tests do not establish mobile usability or storage reliability.
 
 ## Verification
 
+Combined PR branch after incorporating `expo-upgrade`:
+
+- `npm.cmd ci --no-audit --no-fund`: passed, 660 packages installed.
+- `npx.cmd tsc --noEmit`: passed.
+- `npm.cmd test -- --watch=false --runInBand`: 27 suites / 62 tests passed.
+- Working and staged `git diff --check`: passed. No merge conflicts occurred.
+- This supersedes the earlier main-only baseline results below. Hosted CI
+  must validate the final pushed commit separately.
+
 Development checkout (`expo-upgrade`):
 
 - `npm.cmd ci --no-audit --no-fund`: passed, 660 packages installed. Initial
@@ -51,7 +63,7 @@ Development checkout (`expo-upgrade`):
 - No lint configuration; no lint result claimed.
 - No emulator/device test, Android/iOS build or hosted Actions result claimed.
 
-CI checkout (`main` baseline):
+Initial CI checkout (`main` baseline, before incorporating development):
 
 - `npm.cmd ci --no-audit --no-fund`: passed, 1,255 packages installed.
 - `npm.cmd test -- --watch=false --runInBand`: 1 suite / 1 test passed before
@@ -83,7 +95,7 @@ updated documentation for every sprint. Split rows further if review grows.
 | Order | Sprint | Acceptance criteria and main impacted areas |
 | --- | --- | --- |
 | 0 | CI (this PR) | Root .github/workflows/ci.yml validates PRs/pushes to main using the app subdirectory, locked npm install, compatible Node, TypeScript and Jest. Read-only token; no deployment/secrets. Document branch divergence and truthful validation results. |
-| 1 | Reconcile development baseline | Review the 19 existing commits separately against main, confirm Expo/dependency compatibility, preserve all local work, resolve conflicts and get CI passing. Never merge without user approval. |
+| 1 | Review combined baseline (this PR) | The 19 existing commits are incorporated into this PR at the owner's request. Review the combined application and CI changes, confirm dependency compatibility and CI results. Never merge into main without user approval. |
 | 2 | Money and validation | Define currency/precision limits compatible with existing persisted major units; perform accurate supported monetary arithmetic. Reject NaN, infinity, nonpositive/unsupported-precision amounts, invalid dates and inappropriate categories. Add boundary and repository-failure tests across transaction/budget use cases and domain services. No silent migration. |
 | 3 | Transaction editing and categories | Preserve date/category/notes during edits, select consistent expense categories, handle missing records and failed reads/writes, type navigation parameters. Cover use cases and add/edit/delete interactions. Add basic history sorting/filtering using existing repositories. |
 | 4 | Budget periods | Calculate usage only in the defined current budget interval; test month/year boundaries and category consistency, zero/over-budget states and repository errors. Consolidate existing calculations without duplicating architecture. |
@@ -93,7 +105,7 @@ updated documentation for every sprint. Split rows further if review grows.
 | 8 | Reports | Consolidate monthly aggregation semantics, verify cross-year/empty/negative savings cases, add useful category/trend visuals. Make export/share a separate optional task after the MVP; current serializer alone is not an export flow. |
 | 9 | Mobile polish and release | Reuse spacing/formatting/components, improve forms/keyboard/navigation, verify accessible labels/touch targets on small phones/tablets. Add critical AsyncStorage round-trip/corruption/concurrency tests and screen tests. Confirm Expo config/assets/identifiers, then actually build and smoke-test Android/iOS; document platform limitations. No automatic store deployment. |
 
-Next application sprint after baseline reconciliation: money/validation,
+Next application sprint after review of this combined baseline: money/validation,
 followed by transaction preservation and budget-period correctness. Goals
 comes after existing financial data can be trusted. Cloud sync and
 authentication are deferred beyond the stable local MVP.
