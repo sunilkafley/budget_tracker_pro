@@ -41,16 +41,18 @@ function operation<RecordType>(
 const operations = [
   ...[false, true].map((update) => ({
     name: `${update ? "update" : "add"} income`,
-    create: (amount: number) => {
+    create: async (amount: number) => {
       const repository = new FakeIncomeRepository();
+      if (update) await repository.save(new Income("1", "Salary", amount, date, "Employer"));
       return operation(new Income("1", "Salary", amount, date, "Employer"), repository,
         update ? new UpdateIncomeUseCase(repository) : new AddIncomeUseCase(repository));
     },
   })),
   ...[false, true].map((update) => ({
     name: `${update ? "update" : "add"} expense`,
-    create: (amount: number) => {
+    create: async (amount: number) => {
       const repository = new FakeExpenseRepository();
+      if (update) await repository.save(new Expense("1", "Food", amount, date, category));
       return operation(new Expense("1", "Food", amount, date, category), repository,
         update ? new UpdateExpenseUseCase(repository) : new AddExpenseUseCase(repository));
     },
@@ -76,7 +78,7 @@ const operations = [
 describe.each(operations)("$name validation", ({ create }) => {
   it.each([0, -1, NaN, Infinity, -Infinity, 0.001, 1.005, 1_000_000_000_000.01])(
     "rejects amount %s without writing", async (amount) => {
-      const subject = create(amount);
+      const subject = await create(amount);
       await expect(subject.execute()).rejects.toThrow();
       expect(subject.save).not.toHaveBeenCalled();
       expect(subject.update).not.toHaveBeenCalled();
@@ -84,13 +86,13 @@ describe.each(operations)("$name validation", ({ create }) => {
   );
 
   it.each([0.01, 0.29, 1.15, 1_000_000_000_000])("accepts valid amount %s unchanged", async (amount) => {
-    const subject = create(amount);
+    const subject = await create(amount);
     await subject.execute();
     expect([...subject.save.mock.calls, ...subject.update.mock.calls]).toEqual([[subject.record]]);
   });
 
   it("propagates repository write failures", async () => {
-    const subject = create(10);
+    const subject = await create(10);
     const failure = new Error("Storage unavailable");
     subject.save.mockRejectedValueOnce(failure);
     subject.update.mockRejectedValueOnce(failure);
@@ -98,7 +100,7 @@ describe.each(operations)("$name validation", ({ create }) => {
   });
 
   it("rejects invalid dates, categories and frequencies where applicable", async () => {
-    const invalidDate = create(10);
+    const invalidDate = await create(10);
     if ("transactionDate" in invalidDate.record) {
       invalidDate.record.transactionDate = new Date("invalid");
     } else if ("nextDueDate" in invalidDate.record) {
@@ -110,7 +112,7 @@ describe.each(operations)("$name validation", ({ create }) => {
     expect(invalidDate.save).not.toHaveBeenCalled();
     expect(invalidDate.update).not.toHaveBeenCalled();
 
-    const invalidCategory = create(10);
+    const invalidCategory = await create(10);
     if (invalidCategory.record instanceof Income) return;
     if (invalidCategory.record instanceof RecurringPayment) {
       invalidCategory.record.category = CategoryType.INCOME;

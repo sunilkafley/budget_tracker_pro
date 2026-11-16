@@ -7,6 +7,13 @@ export class UpdateExpenseUseCase {
 
   async execute(expense: Expense): Promise<void> {
     FinancialValidation.expense(expense);
-    await this.expenseRepository.update(expense);
+    const existing = await this.expenseRepository.getById(expense.id);
+    if (!existing) throw new Error("Expense not found");
+    const updated = new Expense(
+      expense.id, expense.title, expense.amount, existing.transactionDate,
+      expense.category, expense.notes ?? existing.notes,
+    );
+    FinancialValidation.expense(updated);
+    await this.expenseRepository.update(updated);
   }
 }

@@ -94,6 +94,13 @@ Initial CI checkout (`main` baseline, before incorporating development):
 
 ## Remaining sprint plan
 
+Priority update: the [transaction-editing sprint](transaction-editing-sprint.md)
+addresses date/notes preservation, expense category entry and missing-record
+handling, and introduces the first shared form styling. At the owner's
+request for a better UI, dashboard and shared app styling should be the next
+focused sprint; budget-period and recurring-payment correctness work remain
+on the functional roadmap. History filtering is deferred from this editing PR.
+
 Each row is a separate focused branch/PR. Use RED -> GREEN -> REFACTOR for
 business changes and existing fakes. Require relevant tests, TypeScript and
 updated documentation for every sprint. Split rows further if review grows.

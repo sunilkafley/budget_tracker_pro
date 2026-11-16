@@ -3,11 +3,11 @@ export type RootStackParamList = {
 
   AddExpense: {
     expenseId?: string;
-  };
+  } | undefined;
 
   AddIncome: {
     incomeId?: string;
-  };
+  } | undefined;
 
   CreateBudget: undefined;
 
