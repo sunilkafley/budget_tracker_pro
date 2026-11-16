@@ -67,6 +67,10 @@ CI checkout (`main` baseline):
 - Final `npm.cmd test -- --watch=false --runInBand`: 2 suites / 3 tests passed.
 - `git diff --check`: passed. Workflow YAML was parsed with js-yaml and its
   triggers, app working directory, read-only permission and commands checked.
+- Initial hosted Validate run passed installation, TypeScript and Jest:
+  https://github.com/sunilkafley/budget_tracker_pro/actions/runs/43842467520
+  Its action-runtime deprecation warning prompted checkout/setup-node v6,
+  whose manifests use Node 24 internally. App validation still uses Node 22.16.0.
 - Main still declares Expo 46 alongside React Native 0.85/React 19. The CI
   change does not certify this mobile runtime combination or upgrade it.
 
@@ -123,3 +127,8 @@ npm test -- --watch=false --runInBand
 On Windows PowerShell with script execution disabled, use `npm.cmd` and
 `npx.cmd`. An unauthenticated CLI requires an interactive `gh auth login`
 before `gh pr create` can open the review. No merge is authorized by this task.
+
+PR created using `gh pr create` with the existing Git credential supplied only
+to that process: https://github.com/sunilkafley/budget_tracker_pro/pull/1
+No additional login or stored CLI credential was needed. The branch is
+`chore/ci-setup`; its isolated checkout is in the system temporary directory.
