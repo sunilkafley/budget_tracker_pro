@@ -16,14 +16,15 @@ export class ReportService {
     );
   }
 
-  private static filterByMonth<T extends { date: Date }>(
+  private static filterByMonth<T extends { transactionDate: Date }>(
     items: T[],
     month: number,
     year: number,
   ): T[] {
     return items.filter(
       (item) =>
-        item.date.getMonth() === month && item.date.getFullYear() === year,
+        item.transactionDate.getMonth() === month &&
+        item.transactionDate.getFullYear() === year,
     );
   }
 

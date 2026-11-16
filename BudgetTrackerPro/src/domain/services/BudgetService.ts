@@ -2,6 +2,7 @@ import { Budget } from "../models/Budget";
 import { Expense } from "../models/Expense";
 
 export interface BudgetUsage {
+  budgetId: string;
   budgetAmount: number;
   spentAmount: number;
   remainingAmount: number;
