@@ -1,7 +1,9 @@
 import { Budget } from "../models/Budget";
+import { Money } from "./Money";
 import { Expense } from "../models/Expense";
 
 export interface BudgetUsage {
+  budgetId: string;
   budgetAmount: number;
   spentAmount: number;
   remainingAmount: number;
@@ -11,13 +13,14 @@ export interface BudgetUsage {
 
 export class BudgetService {
   static getBudgetUsage(budget: Budget, expenses: Expense[]) {
-    const spentAmount = expenses
+    const spentAmount = Money.sum(expenses
       .filter((expense) => expense.category.id === budget.category.id)
-      .reduce((sum, expense) => sum + expense.amount, 0);
+      .map((expense) => expense.amount));
 
-    const remainingAmount = budget.limitAmount - spentAmount;
+    const remainingAmount = Money.subtract(budget.limitAmount, spentAmount);
 
-    const percentageUsed = (spentAmount / budget.limitAmount) * 100;
+    const percentageUsed = budget.limitAmount === 0 ? 0 :
+      (Money.toMinorUnits(spentAmount) / Money.toMinorUnits(budget.limitAmount)) * 100;
 
     return {
       budgetAmount: budget.limitAmount,
