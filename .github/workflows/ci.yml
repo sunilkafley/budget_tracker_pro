@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: BudgetTrackerPro
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22.16.0'
+          cache: npm
+          cache-dependency-path: BudgetTrackerPro/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Check Expo dependencies
+        run: npx expo install --check
+      - name: Type check
+        run: npx tsc --noEmit
+      - name: Run tests
+        run: npm test -- --watch=false --runInBand
+      - name: Bundle iOS JavaScript
+        run: npx expo export --platform ios --output-dir "${{ runner.temp }}/budget-tracker-ios-export"
