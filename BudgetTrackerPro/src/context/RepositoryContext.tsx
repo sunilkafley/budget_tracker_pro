@@ -29,6 +29,8 @@ import { ProcessRecurringPaymentsUseCase } from "../application/useCases/Process
 import { CompleteRecurringPaymentUseCase } from "../application/useCases/CompleteRecurringPaymentUseCase";
 import { GetIncomeByIdUseCase } from "../application/useCases/GetIncomeByIdUseCase";
 import { GetExpenseByIdUseCase } from "../application/useCases/GetExpenseByIdUseCase";
+import { GetDashboardTransactionsUseCase } from "../application/useCases/GetDashboardTransactionsUseCase";
+import { GetAllBudgetsUseCase } from "../application/useCases/GetAllBudgetsUseCase";
 
 const expenseRepository = new AsyncExpenseRepository();
 const incomeRepository = new AsyncIncomeRepository();
@@ -36,6 +38,8 @@ const budgetRepository = new AsyncBudgetRepository();
 const recurringPaymentRepository = new AsyncRecurringPaymentRepository();
 
 const repositoryContextValue = {
+  getDashboardTransactionsUseCase: new GetDashboardTransactionsUseCase(incomeRepository, expenseRepository),
+  getAllBudgetsUseCase: new GetAllBudgetsUseCase(budgetRepository),
   expenseRepository,
   getIncomeByIdUseCase: new GetIncomeByIdUseCase(incomeRepository),
   getExpenseByIdUseCase: new GetExpenseByIdUseCase(expenseRepository),

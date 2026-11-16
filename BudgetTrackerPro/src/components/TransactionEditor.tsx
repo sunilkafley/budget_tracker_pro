@@ -1,3 +1,4 @@
+import { colors } from "../theme";
 import React, { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useRepositories } from "../context/RepositoryContext";
@@ -115,27 +116,27 @@ export function TransactionEditor({ kind, transactionId, onSaved }: Props) {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: "#F3F6FA" },
+  screen: { flex: 1, backgroundColor: colors.background },
   content: { padding: 24, paddingBottom: 48, width: "100%", maxWidth: 600, alignSelf: "center" },
-  eyebrow: { color: "#087F75", fontSize: 12, fontWeight: "700", letterSpacing: 1.8, marginBottom: 8 },
-  heading: { color: "#132A43", fontSize: 30, fontWeight: "700", marginBottom: 8 },
-  subtitle: { color: "#526479", fontSize: 15, lineHeight: 23, marginBottom: 24 },
-  card: { backgroundColor: "#FFFFFF", borderRadius: 20, padding: 22, borderWidth: 1, borderColor: "#E0E7F0" },
+  eyebrow: { color: colors.primary, fontSize: 12, fontWeight: "700", letterSpacing: 1.8, marginBottom: 8 },
+  heading: { color: colors.text, fontSize: 30, fontWeight: "700", marginBottom: 8 },
+  subtitle: { color: colors.muted, fontSize: 15, lineHeight: 23, marginBottom: 24 },
+  card: { backgroundColor: colors.surface, borderRadius: 20, padding: 22, borderWidth: 1, borderColor: colors.border },
   label: { color: "#263E56", fontSize: 14, fontWeight: "600", marginBottom: 10 },
-  amountRow: { flexDirection: "row", alignItems: "center", borderBottomWidth: 1, borderBottomColor: "#E0E7F0", marginBottom: 24 },
-  currency: { fontSize: 30, color: "#087F75", marginRight: 8 },
-  amount: { flex: 1, fontSize: 36, color: "#132A43", fontWeight: "600", minHeight: 64, paddingVertical: 8 },
-  input: { borderWidth: 1, borderColor: "#D8E1EC", backgroundColor: "#FAFCFE", borderRadius: 12, padding: 14, fontSize: 16, color: "#132A43", marginBottom: 22, minHeight: 50 },
+  amountRow: { flexDirection: "row", alignItems: "center", borderBottomWidth: 1, borderBottomColor: colors.border, marginBottom: 24 },
+  currency: { fontSize: 30, color: colors.primary, marginRight: 8 },
+  amount: { flex: 1, fontSize: 36, color: colors.text, fontWeight: "600", minHeight: 64, paddingVertical: 8 },
+  input: { borderWidth: 1, borderColor: colors.inputBorder, backgroundColor: colors.input, borderRadius: 12, padding: 14, fontSize: 16, color: colors.text, marginBottom: 22, minHeight: 50 },
   categories: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 22 },
-  category: { minHeight: 44, justifyContent: "center", borderRadius: 12, borderWidth: 1, borderColor: "#D8E1EC", paddingHorizontal: 14, paddingVertical: 10 },
-  selectedCategory: { backgroundColor: "#E4F4F0", borderColor: "#087F75" },
-  categoryText: { color: "#526479", fontSize: 14 },
-  selectedText: { color: "#07685F", fontWeight: "600" },
-  optional: { color: "#65768B", fontWeight: "400" },
+  category: { minHeight: 44, justifyContent: "center", borderRadius: 12, borderWidth: 1, borderColor: colors.inputBorder, paddingHorizontal: 14, paddingVertical: 10 },
+  selectedCategory: { backgroundColor: colors.primarySoft, borderColor: colors.primary },
+  categoryText: { color: colors.muted, fontSize: 14 },
+  selectedText: { color: colors.primaryDark, fontWeight: "600" },
+  optional: { color: colors.subtle, fontWeight: "400" },
   notes: { minHeight: 96 },
-  hint: { color: "#526479", fontSize: 13, lineHeight: 20, marginVertical: 12 },
-  error: { color: "#A42E39", fontSize: 14, lineHeight: 21, marginBottom: 16 },
-  button: { minHeight: 54, alignItems: "center", justifyContent: "center", borderRadius: 14, backgroundColor: "#087F75", marginTop: 8 },
-  buttonText: { color: "#FFFFFF", fontSize: 16, fontWeight: "600" },
+  hint: { color: colors.muted, fontSize: 13, lineHeight: 20, marginVertical: 12 },
+  error: { color: colors.danger, fontSize: 14, lineHeight: 21, marginBottom: 16 },
+  button: { minHeight: 54, alignItems: "center", justifyContent: "center", borderRadius: 14, backgroundColor: colors.primary, marginTop: 8 },
+  buttonText: { color: colors.surface, fontSize: 16, fontWeight: "600" },
   disabled: { opacity: 0.6 },
 });

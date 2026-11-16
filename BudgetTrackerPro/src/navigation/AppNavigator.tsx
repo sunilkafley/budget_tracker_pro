@@ -11,13 +11,14 @@ import { RecurringPaymentsScreen } from "../screens/RecurringPaymentsScreen";
 import CreateRecurringPaymentScreen from "../screens/CreateRecurringPaymentScreen";
 
 import { RootStackParamList } from "../types/navigation";
+import { colors } from "../theme";
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export function AppNavigator() {
   return (
     <NavigationContainer>
-      <Stack.Navigator>
-        <Stack.Screen name="Dashboard" component={DashboardScreen} />
+      <Stack.Navigator screenOptions={{ headerStyle: { backgroundColor: colors.background }, headerTintColor: colors.text, headerShadowVisible: false, contentStyle: { backgroundColor: colors.background } }}>
+        <Stack.Screen name="Dashboard" component={DashboardScreen} options={{ title: "Overview" }} />
 
         <Stack.Screen name="AddIncome" component={AddIncomeScreen} />
 

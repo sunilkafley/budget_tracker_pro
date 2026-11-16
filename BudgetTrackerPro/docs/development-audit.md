@@ -94,6 +94,12 @@ Initial CI checkout (`main` baseline, before incorporating development):
 
 ## Remaining sprint plan
 
+The [dashboard UI sprint](dashboard-ui-sprint.md) now implements the brought-forward
+home-screen redesign and shared styling foundations. Its financial labels are
+explicitly all time/lifetime; budget-period correctness remains the next
+business sprint. Other screens retain their existing layouts except shared
+navigation header colors and transaction-editor palette reuse.
+
 Priority update: the [transaction-editing sprint](transaction-editing-sprint.md)
 addresses date/notes preservation, expense category entry and missing-record
 handling, and introduces the first shared form styling. At the owner's
