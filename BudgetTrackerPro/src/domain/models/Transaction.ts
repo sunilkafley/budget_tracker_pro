@@ -1,3 +1,5 @@
+import { Money } from "../services/Money";
+
 export abstract class Transaction {
   constructor(
     public readonly id: string,
@@ -7,6 +9,11 @@ export abstract class Transaction {
     public notes?: string,
   ) {}
   public isValid(): boolean {
-    return this.amount > 0;
+    try {
+      Money.validatePositive(this.amount, "Transaction");
+      return true;
+    } catch {
+      return false;
+    }
   }
 }
