@@ -1,4 +1,6 @@
-import React, { useCallback, useState } from "react";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../types/navigation";
+import React, { useCallback, useRef, useState } from "react";
 
 import { View, Text, FlatList, Button, Alert, StyleSheet } from "react-native";
 
@@ -8,7 +10,7 @@ import { RecurringPayment } from "../domain/models/RecurringPayment";
 
 import { useRepositories } from "../context/RepositoryContext";
 
-export function RecurringPaymentsScreen({ navigation }: any) {
+export function RecurringPaymentsScreen({ navigation }: NativeStackScreenProps<RootStackParamList, "RecurringPayments">) {
   const {
     getAllRecurringPaymentsUseCase,
     deleteRecurringPaymentUseCase,
@@ -17,19 +19,31 @@ export function RecurringPaymentsScreen({ navigation }: any) {
 
   const [payments, setPayments] = useState<RecurringPayment[]>([]);
 
-  const loadPayments = async () => {
-    const data = await getAllRecurringPaymentsUseCase.execute();
-
-    setPayments(data);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+  const mutationPending = useRef(false);
+  const loadPayments = useCallback(async () => {
+    setLoading(true); setError(null);
+    try { setPayments(await getAllRecurringPaymentsUseCase.execute()); }
+    catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to load payments.'); }
+    finally { setLoading(false); }
+  }, [getAllRecurringPaymentsUseCase]);
+  const mutate = async (operation: () => Promise<void>, success: string) => {
+    if (mutationPending.current) return;
+    mutationPending.current = true; setPending(true);
+    try { await operation(); await loadPayments(); Alert.alert('Saved', success); }
+    catch (reason) { Alert.alert('Unable to save', reason instanceof Error ? reason.message : 'Please try again.'); }
+    finally { mutationPending.current = false; setPending(false); }
   };
 
   useFocusEffect(
     useCallback(() => {
       loadPayments();
-    }, []),
+    }, [loadPayments]),
   );
 
-  const handleCompletePayment = (id: string) => {
+  const handleCompletePayment = (payment: RecurringPayment) => {
     Alert.alert("Complete Payment", "Create expense and advance due date?", [
       {
         text: "Cancel",
@@ -38,13 +52,7 @@ export function RecurringPaymentsScreen({ navigation }: any) {
       {
         text: "Confirm",
         onPress: async () => {
-          try {
-            await completeRecurringPaymentUseCase.execute(id);
-            await loadPayments();
-            Alert.alert("Success", "Payment completed successfully.");
-          } catch (error) {
-            Alert.alert("Error", error instanceof Error ? error.message : "Unable to complete payment.");
-          }
+          await mutate(() => completeRecurringPaymentUseCase.execute(payment.id, payment.nextDueDate), 'Expense recorded and due date updated.');
         },
       },
     ]);
@@ -62,9 +70,7 @@ export function RecurringPaymentsScreen({ navigation }: any) {
           text: "Delete",
           style: "destructive",
           onPress: async () => {
-            await deleteRecurringPaymentUseCase.execute(id);
-
-            loadPayments();
+            await mutate(() => deleteRecurringPaymentUseCase.execute(id), 'Recurring payment deleted.');
           },
         },
       ],
@@ -74,16 +80,21 @@ export function RecurringPaymentsScreen({ navigation }: any) {
   return (
     <View style={styles.container}>
       <Button
+        disabled={pending}
         title="Add Recurring Payment"
-        onPress={() => navigation.navigate("CreateRecurringPayment")}
+        onPress={() => navigation.navigate("CreateRecurringPayment", {})}
       />
 
+      {pending && <Text accessibilityLiveRegion="polite">Saving payment…</Text>}
+      {error && <View><Text>{error}</Text><Button title="Retry" onPress={() => void loadPayments()} /></View>}
       <FlatList
         style={styles.list}
-        data={payments}
+        data={error ? [] : payments}
+        refreshing={loading}
+        onRefresh={() => void loadPayments()}
         keyExtractor={(item) => item.id}
         ListEmptyComponent={
-          <Text style={styles.emptyText}>No recurring payments found.</Text>
+          <Text style={styles.emptyText}>{loading ? "Loading payments…" : error ? "Payments unavailable." : "No recurring payments found."}</Text>
         }
         renderItem={({ item }) => (
           <View style={styles.card}>
@@ -98,6 +109,7 @@ export function RecurringPaymentsScreen({ navigation }: any) {
 
             <View style={styles.buttonRow}>
               <Button
+                disabled={pending}
                 title="Edit"
                 onPress={() =>
                   navigation.navigate("CreateRecurringPayment", {
@@ -106,10 +118,11 @@ export function RecurringPaymentsScreen({ navigation }: any) {
                 }
               />
 
-              <Button title="Delete" onPress={() => handleDelete(item.id)} />
+              <Button disabled={pending} title="Delete" onPress={() => handleDelete(item.id)} />
               <Button
+                disabled={pending}
                 title="Complete"
-                onPress={() => handleCompletePayment(item.id)}
+                onPress={() => handleCompletePayment(item)}
               />
             </View>
           </View>
@@ -146,6 +159,7 @@ const styles = StyleSheet.create({
   buttonRow: {
     flexDirection: "row",
     justifyContent: "space-between",
+    flexWrap: "wrap",
     marginTop: 10,
   },
 

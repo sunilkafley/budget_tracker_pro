@@ -1,3 +1,4 @@
+import { FakeRecurringOccurrenceRepository } from "../../src/infrastructure/repositories/FakeRecurringOccurrenceRepository";
 import { CompleteRecurringPaymentUseCase } from "../../src/application/useCases/CompleteRecurringPaymentUseCase";
 
 import { FakeExpenseRepository } from "../../src/infrastructure/repositories/FakeExpenseRepository";
@@ -22,6 +23,7 @@ describe("CompleteRecurringPaymentUseCase", () => {
     useCase = new CompleteRecurringPaymentUseCase(
       recurringPaymentRepository,
       expenseRepository,
+      new FakeRecurringOccurrenceRepository(),
     );
   });
 

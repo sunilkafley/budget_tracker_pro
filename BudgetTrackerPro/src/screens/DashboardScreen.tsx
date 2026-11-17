@@ -53,7 +53,7 @@ export function DashboardScreen({ navigation }: Props) {
   const complete = (payment: RecurringPayment) => {
     Alert.alert("Record payment?", `${payment.name} · ${money(payment.amount)}\nThis creates an expense and advances its due date.`, [
       { text: "Cancel", style: "cancel" },
-      { text: "Confirm", onPress: () => void mutate(() => completeRecurringPaymentUseCase.execute(payment.id), "Expense added and next due date updated.") },
+      { text: "Confirm", onPress: () => void mutate(() => completeRecurringPaymentUseCase.execute(payment.id, payment.nextDueDate), "Expense added and next due date updated.") },
     ]);
   };
   const retry = () => { void load(); };

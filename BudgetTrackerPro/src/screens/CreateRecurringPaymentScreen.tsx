@@ -1,3 +1,5 @@
+import { parseRecurringDate, formatRecurringDate } from "../utils/recurringDateInput";
+import { RecurringPayment } from "../domain/models/RecurringPayment";
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -34,7 +36,7 @@ export default function CreateRecurringPaymentScreen({
   const [category, setCategory] = useState<CategoryType>(CategoryType.OTHER);
 
   const [nextDueDate, setNextDueDate] = useState(
-    new Date().toISOString().split("T")[0],
+    formatRecurringDate(new Date()),
   );
 
   useEffect(() => {
@@ -55,7 +57,7 @@ export default function CreateRecurringPaymentScreen({
       setFrequency(payment.frequency);
       setCategory(payment.category);
 
-      setNextDueDate(payment.nextDueDate.toISOString().split("T")[0]);
+      setNextDueDate(formatRecurringDate(payment.nextDueDate));
     };
 
     loadPayment();
@@ -83,20 +85,15 @@ export default function CreateRecurringPaymentScreen({
           return;
         }
 
-        existingPayment.name = name;
-        existingPayment.amount = amountValue;
-        existingPayment.frequency = frequency;
-        existingPayment.category = category;
-        existingPayment.nextDueDate = new Date(nextDueDate);
-
-        await updateRecurringPaymentUseCase.execute(existingPayment);
+        const updated = new RecurringPayment(existingPayment.id, name, amountValue, category, frequency, nextDueDate === formatRecurringDate(existingPayment.nextDueDate) ? new Date(existingPayment.nextDueDate) : parseRecurringDate(nextDueDate));
+        await updateRecurringPaymentUseCase.execute(updated);
       } else {
         const payment = createRecurringPayment(
           name,
           amountValue,
           category,
           frequency,
-          new Date(nextDueDate),
+          parseRecurringDate(nextDueDate),
         );
 
         await createRecurringPaymentUseCase.execute(payment);

@@ -1,3 +1,4 @@
+import { AsyncRecurringOccurrenceRepository } from "../infrastructure/repositories/AsyncRecurringOccurrenceRepository";
 import React, { createContext, useContext } from "react";
 
 import { AsyncExpenseRepository } from "../infrastructure/repositories/AsyncExpenseRepository";
@@ -103,6 +104,7 @@ const repositoryContextValue = {
   completeRecurringPaymentUseCase: new CompleteRecurringPaymentUseCase(
     recurringPaymentRepository,
     expenseRepository,
+    new AsyncRecurringOccurrenceRepository(),
   ),
 };
 

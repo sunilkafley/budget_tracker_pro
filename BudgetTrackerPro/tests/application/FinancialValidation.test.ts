@@ -1,3 +1,4 @@
+import { FakeRecurringOccurrenceRepository } from "../../src/infrastructure/repositories/FakeRecurringOccurrenceRepository";
 import { AddIncomeUseCase } from "../../src/application/useCases/AddIncomeUseCase";
 import { UpdateIncomeUseCase } from "../../src/application/useCases/UpdateIncomeUseCase";
 import { AddExpenseUseCase } from "../../src/application/useCases/AddExpenseUseCase";
@@ -68,8 +69,9 @@ const operations = [
   })),
   ...[false, true].map((update) => ({
     name: `${update ? "update" : "create"} recurring payment`,
-    create: (amount: number) => {
+    create: async (amount: number) => {
       const repository = new FakeRecurringPaymentRepository();
+      if (update) await repository.save(new RecurringPayment("1", "Rent", amount, CategoryType.OTHER, Frequency.MONTHLY, date));
       return operation(new RecurringPayment("1", "Food", amount, CategoryType.GROCERY, Frequency.MONTHLY, date), repository,
         update ? new UpdateRecurringPaymentUseCase(repository) : new CreateRecurringPaymentUseCase(repository));
     },
@@ -139,7 +141,7 @@ it.each([
   corrupt(payment);
   await recurringRepository.save(payment);
   const update = jest.spyOn(recurringRepository, "update");
-  await expect(new CompleteRecurringPaymentUseCase(recurringRepository, expenseRepository).execute("1")).rejects.toThrow();
+  await expect(new CompleteRecurringPaymentUseCase(recurringRepository, expenseRepository, new FakeRecurringOccurrenceRepository()).execute("1")).rejects.toThrow();
   expect(await expenseRepository.getAll()).toEqual([]);
   expect(update).not.toHaveBeenCalled();
 });

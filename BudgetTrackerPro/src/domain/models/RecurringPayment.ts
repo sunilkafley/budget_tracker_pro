@@ -9,5 +9,6 @@ export class RecurringPayment {
     public category: CategoryType,
     public frequency: Frequency,
     public nextDueDate: Date,
+    public recurrenceAnchorDate?: Date,
   ) {}
 }

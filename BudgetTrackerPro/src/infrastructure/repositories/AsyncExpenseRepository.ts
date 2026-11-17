@@ -1,3 +1,4 @@
+import { serializedOperation } from "../../application/SerializedOperation";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { Expense } from "../../domain/models/Expense";
@@ -7,11 +8,13 @@ import { StorageKeys } from "../../storage/StorageKeys";
 
 export class AsyncExpenseRepository implements IExpenseRepository {
   async save(expense: Expense): Promise<void> {
-    const expenses = await this.getAll();
+    return serializedOperation("storage:EXPENSES", async () => {
+      const expenses = await this.getAll();
 
-    expenses.push(expense);
+      expenses.push(expense);
 
-    await AsyncStorage.setItem(StorageKeys.EXPENSES, JSON.stringify(expenses));
+      await AsyncStorage.setItem(StorageKeys.EXPENSES, JSON.stringify(expenses));
+    });
   }
 
   async getAll(): Promise<Expense[]> {
@@ -47,20 +50,24 @@ export class AsyncExpenseRepository implements IExpenseRepository {
   }
 
   async update(updatedExpense: Expense): Promise<void> {
-    const expenses = await this.getAll();
+    return serializedOperation("storage:EXPENSES", async () => {
+      const expenses = await this.getAll();
 
-    const updated = expenses.map((expense) =>
-      expense.id === updatedExpense.id ? updatedExpense : expense,
-    );
+      const updated = expenses.map((expense) =>
+        expense.id === updatedExpense.id ? updatedExpense : expense,
+      );
 
-    await AsyncStorage.setItem(StorageKeys.EXPENSES, JSON.stringify(updated));
+      await AsyncStorage.setItem(StorageKeys.EXPENSES, JSON.stringify(updated));
+    });
   }
 
   async delete(id: string): Promise<void> {
-    const expenses = await this.getAll();
+    return serializedOperation("storage:EXPENSES", async () => {
+      const expenses = await this.getAll();
 
-    const filtered = expenses.filter((expense) => expense.id !== id);
+      const filtered = expenses.filter((expense) => expense.id !== id);
 
-    await AsyncStorage.setItem(StorageKeys.EXPENSES, JSON.stringify(filtered));
+      await AsyncStorage.setItem(StorageKeys.EXPENSES, JSON.stringify(filtered));
+    });
   }
 }

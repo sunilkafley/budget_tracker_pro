@@ -97,7 +97,9 @@ Initial CI checkout (`main` baseline, before incorporating development):
 The [budget-period sprint](budget-periods-sprint.md) now implements current
 calendar usage and consistent enum-category matching, following the completed
 transaction-editing and dashboard UI branches. See its notes for exact period
-rules, checks and remaining device review. Recurring-payment reliability is next.
+rules, checks and remaining device review. The [recurring-payment reliability
+sprint](recurring-payment-reliability-sprint.md) now implements occurrence recovery,
+duplicate prevention and calendar-safe recurrence. Financial Goals is next.
 
 The [dashboard UI sprint](dashboard-ui-sprint.md) now implements the brought-forward
 home-screen redesign and shared styling foundations. Its financial labels are

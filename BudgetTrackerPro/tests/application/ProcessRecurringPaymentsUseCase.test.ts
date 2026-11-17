@@ -8,7 +8,7 @@ import { Frequency } from "../../src/domain/enums/Frequency";
 import { CategoryType } from "../../src/domain/enums/CategoryType";
 
 describe("ProcessRecurringPaymentsUseCase", () => {
-  it("should advance an overdue monthly payment", async () => {
+  it("preserves an unpaid overdue monthly payment", async () => {
     const repository = new FakeRecurringPaymentRepository();
 
     const payment = new RecurringPayment(
@@ -28,10 +28,10 @@ describe("ProcessRecurringPaymentsUseCase", () => {
 
     const payments = await repository.getAll();
 
-    expect(payments[0].nextDueDate.getMonth()).toBeGreaterThan(0);
+    expect(payments[0].nextDueDate.getTime()).toBe(new Date("2025-01-01").getTime());
   });
 
-  it("should advance an overdue weekly payment", async () => {
+  it("preserves an unpaid overdue weekly payment", async () => {
     const repository = new FakeRecurringPaymentRepository();
 
     const payment = new RecurringPayment(
@@ -51,7 +51,7 @@ describe("ProcessRecurringPaymentsUseCase", () => {
 
     const payments = await repository.getAll();
 
-    expect(payments[0].nextDueDate.getTime()).toBeGreaterThan(
+    expect(payments[0].nextDueDate.getTime()).toBe(
       new Date("2025-01-01").getTime(),
     );
   });
