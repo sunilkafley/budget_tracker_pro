@@ -8,7 +8,7 @@ import {
   View,
 } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
-import { LinearGradient } from "expo-linear-gradient";
+import { OverviewCard } from "../components/OverviewCard";
 import { AppNavigation } from "../types/navigation";
 import { useDashboard } from "../hooks/useDashboard";
 import { useRepositories } from "../context/RepositoryContext";
@@ -17,7 +17,6 @@ import {
   BudgetCard,
   TransactionRow,
   Icon,
-  Progress,
   finance,
   formatMoney,
 } from "../components/FinanceUI";
@@ -128,142 +127,17 @@ export function DashboardScreen() {
           />
         ) : (
           <>
-            <LinearGradient
-              colors={["#5742DF", "#9144ED", "#7922CD"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={{
-                borderRadius: 28,
-                padding: 24,
-                marginBottom: 18,
-                boxShadow: "0px 9px 22px rgba(99,63,211,0.19)",
-              }}
-            >
-              <Text
-                style={{
-                  color: "#E3DBFF",
-                  fontSize: 11,
-                  fontWeight: "600",
-                  letterSpacing: 1.2,
-                }}
-              >
-                {hasPlan
-                  ? "REMAINING MONTHLY BUDGET"
-                  : "MONTH-TO-DATE EXPENSES"}
-              </Text>
-              <Text
-                style={{
-                  color: "white",
-                  fontSize: 36,
-                  fontWeight: "800",
-                  letterSpacing: -1,
-                  marginTop: 12,
-                }}
-              >
-                {formatMoney(
-                  hasPlan ? monthlyPlan.remaining : report.totalExpenses,
-                )}
-              </Text>
-              <Text
-                style={{
-                  color: "#E3DBFF",
-                  fontSize: 12,
-                  marginTop: 8,
-                  marginBottom: 22,
-                }}
-              >
-                {new Date().toLocaleDateString(undefined, {
-                  month: "long",
-                  year: "numeric",
-                })}
-                {hasPlan ? " · budgeted categories" : " · through today"}
-              </Text>
-              {hasPlan ? (
-                <>
-                  <View style={finance.row}>
-                    <Text style={{ color: "#F0E8FF", fontSize: 12, flex: 1 }}>
-                      Spent {formatMoney(monthlyPlan.spent)} of{" "}
-                      {formatMoney(monthlyPlan.limit)}
-                    </Text>
-                    <Text style={{ color: "white", fontWeight: "700" }}>
-                      {Math.round(monthlyPlan.percentage)}%
-                    </Text>
-                  </View>
-                  <View style={{ marginTop: 10, marginBottom: 24 }}>
-                    <Progress
-                      percentage={monthlyPlan.percentage}
-                      label="Monthly category budget usage"
-                      color="#FFD36A"
-                    />
-                  </View>
-                </>
-              ) : (
-                <Text
-                  style={{ color: "#E3DBFF", fontSize: 13, marginBottom: 20 }}
-                >
-                  Give your money a plan. Create a monthly budget below.
-                </Text>
-              )}
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 22 }}>
-                {[
-                  {
-                    label: "Income",
-                    amount: report.totalIncome,
-                    icon: "wallet" as const,
-                  },
-                  {
-                    label: "Expenses",
-                    amount: report.totalExpenses,
-                    icon: "activity" as const,
-                  },
-                ].map((item) => (
-                  <View
-                    key={item.label}
-                    style={{
-                      flexDirection: "row",
-                      gap: 10,
-                      alignItems: "center",
-                      flexGrow: 1,
-                    }}
-                  >
-                    <View
-                      style={{
-                        padding: 10,
-                        backgroundColor: "#FFFFFF20",
-                        borderRadius: 14,
-                      }}
-                    >
-                      <Icon name={item.icon} color="#EDE7FF" size={20} />
-                    </View>
-                    <View>
-                      <Text style={{ color: "#D8C9FC", fontSize: 12 }}>
-                        {item.label} · to date
-                      </Text>
-                      <Text
-                        style={{
-                          fontSize: 18,
-                          fontWeight: "700",
-                          color: "white",
-                          marginTop: 4,
-                        }}
-                      >
-                        {formatMoney(item.amount)}
-                      </Text>
-                    </View>
-                  </View>
-                ))}
-              </View>
-            </LinearGradient>
+            <OverviewCard report={report} monthlyPlan={hasPlan ? monthlyPlan : null} />
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="View cashflow insights"
               onPress={() => navigation.navigate("Reports")}
-              style={[finance.card, finance.row]}
+              style={[finance.card, finance.row, { paddingVertical: 14, borderRadius: 20 }]}
             >
               <View
                 style={{
-                  padding: 12,
-                  borderRadius: 16,
+                  padding: 9,
+                  borderRadius: 13,
                   backgroundColor: colors.successSoft,
                 }}
               >
@@ -276,7 +150,7 @@ export function DashboardScreen() {
                 <Text
                   style={{
                     color: report.savings >= 0 ? colors.success : colors.danger,
-                    fontSize: 20,
+                    fontSize: 16,
                     fontWeight: "700",
                     marginTop: 4,
                   }}
@@ -285,6 +159,7 @@ export function DashboardScreen() {
                   {formatMoney(report.savings)}
                 </Text>
               </View>
+              <Text style={{ color: colors.primary, fontSize: 12 }}>Insights</Text>
               <Icon name="arrow" color={colors.primary} />
             </Pressable>
           </>
@@ -337,7 +212,7 @@ export function DashboardScreen() {
           />
         ) : (
           transactions
-            .slice(0, 3)
+            .slice(0, 5)
             .map((record) => (
               <TransactionRow
                 key={record.kind + "-" + record.transaction.id}

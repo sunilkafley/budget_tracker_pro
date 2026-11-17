@@ -90,6 +90,12 @@ with the reference's sample merchants or balances.
 
 ## iPhone acceptance review
 
+The follow-up [reference layout refinement](reference-layout-details.md) tightens
+row/card geometry, the overview and the transaction sheet against the supplied
+screenshots. It supersedes this document's three-entry Home preview and + menu
+default: Home now shows five entries and + opens the transaction sheet directly.
+Hold + for the broader quick-add menu. See that note for verification limits.
+
 Start this checkout with `npm.cmd start -- --go --clear` and reopen it in SDK 58
 Expo Go. Check the four tabs, quick-add dismissal, modal Back and save, and that
 adding/editing an entry refreshes the originating tab. Confirm budget save returns

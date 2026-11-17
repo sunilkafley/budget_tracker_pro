@@ -19,7 +19,7 @@ export function ActionButton({ title, onPress, variant = "primary", disabled = f
 
 export function SectionHeading({ title, action, onPress }: { title: string; action?: string; onPress?: () => void }) {
   return <View style={ui.sectionHeading}><Text accessibilityRole="header" style={ui.sectionTitle}>{title}</Text>
-    {action && onPress && <ActionButton title={action} onPress={onPress} variant="quiet" />}</View>;
+    {action && onPress && <Pressable accessibilityRole="button" onPress={onPress} style={ui.sectionAction}><Text style={ui.sectionActionText}>{action}</Text></Pressable>}</View>;
 }
 
 export function LoadState({ loading, error, empty, onRetry }: {
@@ -36,8 +36,10 @@ export const ui = StyleSheet.create({
   quietButton: { backgroundColor: colors.background },
   buttonText: { color: colors.surface, fontSize: 14, fontWeight: "600", textAlign: "center" },
   quietText: { color: colors.primaryDark }, dangerText: { color: colors.danger }, dim: { opacity: 0.6 },
-  sectionHeading: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, marginTop: spacing.large, marginBottom: 12, flexWrap: "wrap" },
-  sectionTitle: { color: colors.text, fontSize: 20, fontWeight: "700", flexShrink: 1 },
+  sectionHeading: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, marginTop: 16, marginBottom: 6, flexWrap: "wrap" },
+  sectionTitle: { color: colors.text, fontSize: 16, fontWeight: "700", flexShrink: 1 },
+  sectionAction: { minHeight: 44, justifyContent: "center", paddingLeft: 8 },
+  sectionActionText: { color: colors.primary, fontSize: 13 },
   body: { color: colors.muted, fontSize: 14, lineHeight: 21 },
   error: { color: colors.danger, fontSize: 14, lineHeight: 21, marginBottom: 8 },
 });

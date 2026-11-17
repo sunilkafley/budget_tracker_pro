@@ -89,26 +89,26 @@ export function ActivityScreen() {
                 borderColor: colors.inputBorder,
                 borderRadius: 18,
                 paddingHorizontal: 14,
-                marginBottom: 18,
+                marginBottom: 12,
               }}
             >
-              <Icon name="search" />
+              <Icon name="search" size={18} color={colors.subtle} />
               <TextInput
                 accessibilityLabel="Search transactions by title, category or source"
-                placeholder="Search title or category…"
+                placeholder="Search merchant or category..."
                 placeholderTextColor={colors.subtle}
                 value={query}
                 onChangeText={setQuery}
                 style={{
                   flex: 1,
-                  minHeight: 52,
+                  minHeight: 46,
                   color: colors.text,
-                  fontSize: 15,
+                  fontSize: 14,
                 }}
                 clearButtonMode="while-editing"
               />
             </View>
-            <View style={{ flexDirection: "row", gap: 8, marginBottom: 20 }}>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
               {(["all", "expense", "income"] as const).map((kind) => (
                 <Pressable
                   key={kind}
@@ -117,9 +117,9 @@ export function ActivityScreen() {
                   onPress={() => setFilter(kind)}
                   style={{
                     minHeight: 44,
-                    paddingHorizontal: 18,
+                    paddingHorizontal: 16,
                     justifyContent: "center",
-                    borderRadius: 16,
+                    borderRadius: 14,
                     backgroundColor:
                       filter === kind ? colors.primary : colors.surface,
                     borderWidth: 1,
@@ -129,8 +129,9 @@ export function ActivityScreen() {
                 >
                   <Text
                     style={{
-                      color: filter === kind ? "white" : colors.muted,
-                      fontWeight: "600",
+                      color: filter === kind ? "white" : "#526075",
+                      fontWeight: filter === kind ? "600" : "400",
+                      fontSize: 13,
                     }}
                   >
                     {kind === "all"
@@ -142,13 +143,6 @@ export function ActivityScreen() {
                 </Pressable>
               ))}
             </View>
-            {!loading && !error && (
-              <Text style={[finance.caption, { marginBottom: 12 }]}>
-                {records.length}{" "}
-                {records.length === 1 ? "transaction" : "transactions"} · newest
-                first
-              </Text>
-            )}
           </>
         }
         ListEmptyComponent={

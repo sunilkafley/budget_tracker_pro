@@ -1,11 +1,10 @@
 import React, { useCallback, useRef, useState } from "react";
-import { Alert, FlatList, Text, View } from "react-native";
+import { Alert, FlatList, Pressable, Text, View } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { useNavigation } from "@react-navigation/native";
 import {
   FinancePage,
   BudgetCard,
-  Progress,
   formatMoney,
   finance,
 } from "../components/FinanceUI";
@@ -27,6 +26,7 @@ export default function BudgetListScreen() {
   const [budgets, setBudgets] = useState<BudgetUsage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>();
+  const [showDetails, setShowDetails] = useState(false);
   const [pending, setPending] = useState(false);
   const mutationPending = useRef(false);
   const request = useRef(0);
@@ -87,75 +87,26 @@ export default function BudgetListScreen() {
     ]);
 
   return (
-    <FinancePage title="Category budgets" onRefresh={() => void load()}>
+    <FinancePage title={budgets.some((budget) => budget.frequency !== "MONTHLY") ? "Category budgets" : "Monthly budgets"} onRefresh={() => void load()}>
       <FlatList
         contentContainerStyle={finance.content}
         data={loading || error ? [] : budgets}
         keyExtractor={(item) => item.budgetId}
         refreshing={loading}
         onRefresh={() => void load()}
-        ListHeaderComponent={
-          <View style={{ gap: 12, marginBottom: 20 }}>
-            {!loading && !error && monthlyPlan && monthlyPlan.count > 0 && (
-              <View style={finance.card}>
-                <View style={finance.row}>
-                  <View>
-                    <Text style={finance.caption}>Total monthly cap</Text>
-                    <Text
-                      style={{
-                        fontSize: 26,
-                        fontWeight: "800",
-                        color: colors.text,
-                        marginTop: 8,
-                      }}
-                    >
-                      {formatMoney(monthlyPlan.limit)}
-                    </Text>
-                  </View>
-                  <View>
-                    <Text style={finance.caption}>
-                      {monthlyPlan.remaining < 0 ? "Over limit" : "Remaining"}
-                    </Text>
-                    <Text
-                      style={{
-                        fontSize: 22,
-                        fontWeight: "700",
-                        color:
-                          monthlyPlan.remaining < 0
-                            ? colors.danger
-                            : colors.success,
-                        marginTop: 8,
-                      }}
-                    >
-                      {formatMoney(Math.abs(monthlyPlan.remaining))}
-                    </Text>
-                  </View>
-                </View>
-                <View style={{ marginTop: 22 }}>
-                  <Progress
-                    percentage={monthlyPlan.percentage}
-                    label="Monthly budget usage"
-                    color={
-                      monthlyPlan.percentage >= 90
-                        ? colors.warning
-                        : colors.success
-                    }
-                  />
-                </View>
-                <Text style={[finance.caption, { marginTop: 10 }]}>
-                  Monthly categories only. If a category has several caps, its
-                  lowest cap applies to this total.
-                </Text>
-              </View>
-            )}
-            <Text style={ui.body}>
-              Each cap follows its own calendar period. Weeks start Monday;
-              unused amounts do not roll over.
-            </Text>
-            <ActionButton
-              title="+ Create budget"
-              onPress={() => navigation.navigate("CreateBudget")}
-            />
+        ListFooterComponent={
+          <View style={{ gap: 8, marginTop: 6 }}>
+            <ActionButton title="+ Create budget" variant="quiet" onPress={() => navigation.navigate("CreateBudget")} />
+            <Pressable accessibilityRole="button" accessibilityState={{ expanded: showDetails }}
+              onPress={() => setShowDetails(!showDetails)} style={{ minHeight: 44, justifyContent: "center", alignItems: "center" }}>
+              <Text style={{ color: colors.muted, fontSize: 12 }}>{showDetails ? "Hide period details" : "About budget periods"}</Text>
+            </Pressable>
+            {showDetails && <View style={finance.card}>
+              <Text style={ui.body}>Each cap follows its own calendar period. Weeks start Monday; unused amounts do not roll over. Monthly cards cover the current calendar month.</Text>
+              {!loading && !error && monthlyPlan && monthlyPlan.count > 0 && <Text style={[ui.body, { marginTop: 10 }]}>
+                Monthly caps: {formatMoney(monthlyPlan.limit)}. {formatMoney(Math.abs(monthlyPlan.remaining))} {monthlyPlan.remaining < 0 ? "over limit" : "remaining"}. If a category has several caps, its lowest cap applies to this combined total.
+              </Text>}
+            </View>}
           </View>
         }
         ListEmptyComponent={

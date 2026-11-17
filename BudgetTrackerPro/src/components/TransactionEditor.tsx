@@ -1,4 +1,4 @@
-import { CategoryBadge } from "./FinanceUI";
+import { CategoryBadge, Icon, IconButton } from "./FinanceUI";
 import {
   formatRecurringDate,
   parseRecurringDate,
@@ -14,8 +14,10 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  useWindowDimensions,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRepositories } from "../context/RepositoryContext";
 import { Income } from "../domain/models/Income";
 import { Expense } from "../domain/models/Expense";
@@ -41,6 +43,7 @@ type Props = {
   transactionId?: string;
   onSaved: () => void;
   onSwitchKind?: () => void;
+  onClose: () => void;
 };
 
 export function TransactionEditor({
@@ -48,7 +51,11 @@ export function TransactionEditor({
   transactionId,
   onSaved,
   onSwitchKind,
+  onClose,
 }: Props) {
+  const { width, fontScale } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const categoryWidth = fontScale > 1.3 ? "47%" : width < 350 ? "30%" : "23%";
   const {
     getIncomeByIdUseCase,
     getExpenseByIdUseCase,
@@ -66,6 +73,7 @@ export function TransactionEditor({
   );
   const [source, setSource] = useState("");
   const [notes, setNotes] = useState("");
+  const [showNotes, setShowNotes] = useState(false);
   const [category, setCategory] = useState<CategoryType>(CategoryType.GROCERY);
   const [loading, setLoading] = useState(editing);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -83,6 +91,7 @@ export function TransactionEditor({
     setAmount("");
     setSource("");
     setNotes("");
+    setShowNotes(false);
     setCategory(CategoryType.GROCERY);
     if (transactionId === undefined) {
       setLoading(false);
@@ -101,6 +110,7 @@ export function TransactionEditor({
         setTitle(record.title);
         setAmount(String(record.amount));
         setNotes(record.notes ?? "");
+        setShowNotes(Boolean(record.notes));
         if (record instanceof Income) setSource(record.source);
         if (record instanceof Expense) setCategory(record.category.type);
       } catch (error) {
@@ -185,24 +195,17 @@ export function TransactionEditor({
     <KeyboardAvoidingView
       style={styles.screen}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
-      keyboardVerticalOffset={100}
+      keyboardVerticalOffset={0}
     >
       <ScrollView
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, { paddingBottom: Math.max(24, insets.bottom) }]}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
       >
-        <Text style={styles.eyebrow}>
-          {kind === "income" ? "MONEY IN" : "MONEY OUT"}
-        </Text>
-        <Text style={styles.heading}>
-          {editing ? "Edit" : "Add"} {kind}
-        </Text>
-        <Text style={styles.subtitle}>
-          {editing
-            ? "Update the details. Make every detail count."
-            : "A small entry. A clearer picture of your money."}
-        </Text>
+        <View style={styles.header}>
+          <Text accessibilityRole="header" style={styles.heading}>{editing ? "Edit transaction" : "New transaction"}</Text>
+          <IconButton name="close" label="Close transaction" disabled={saving} onPress={onClose} />
+        </View>
         {loading ? (
           <View style={styles.card}>
             <ActivityIndicator accessibilityLabel="Loading transaction" />
@@ -230,16 +233,18 @@ export function TransactionEditor({
                 {(["expense", "income"] as const).map((value) => (
                   <Pressable
                     key={value}
+                    hitSlop={4}
                     accessibilityRole="button"
-                    accessibilityState={{ selected: kind === value }}
+                    accessibilityState={{ selected: kind === value, disabled: saving }}
+                    disabled={saving}
                     onPress={() => {
                       if (kind !== value) onSwitchKind();
                     }}
-                    style={[styles.kind, kind === value && styles.activeKind]}
+                    style={[styles.kind, kind === value && { backgroundColor: kind === "expense" ? "#DF4D65" : colors.success }]}
                   >
                     <Text
                       style={{
-                        color: kind === value ? colors.primary : colors.muted,
+                        color: kind === value ? "white" : "#526075",
                         fontWeight: "600",
                       }}
                     >
@@ -256,7 +261,6 @@ export function TransactionEditor({
                 accessibilityLabel="Amount"
                 value={amount}
                 onChangeText={setAmount}
-                autoFocus={!editing}
                 keyboardType="decimal-pad"
                 placeholder="0.00"
                 placeholderTextColor="#8795A8"
@@ -264,7 +268,7 @@ export function TransactionEditor({
                 editable={!saving}
               />
             </View>
-            <Text style={styles.label}>Title</Text>
+            <Text style={styles.label}>Title / Merchant</Text>
             <TextInput
               accessibilityLabel="Title"
               value={title}
@@ -272,7 +276,7 @@ export function TransactionEditor({
               placeholder={
                 kind === "income"
                   ? "e.g. Monthly salary"
-                  : "e.g. Weekly groceries"
+                  : "e.g. Blue Bottle Coffee, Whole Foods"
               }
               style={styles.input}
               editable={!saving}
@@ -306,6 +310,7 @@ export function TransactionEditor({
                       onPress={() => setCategory(value)}
                       style={[
                         styles.category,
+                        { width: categoryWidth },
                         category === value && styles.selectedCategory,
                       ]}
                     >
@@ -323,29 +328,34 @@ export function TransactionEditor({
                 </View>
               </>
             )}
-            <Text style={styles.label}>Date</Text>
-            <TextInput
-              accessibilityLabel="Transaction date, YYYY-MM-DD"
-              value={dateText}
-              onChangeText={setDateText}
-              placeholder="YYYY-MM-DD"
-              style={styles.input}
-              editable={!saving}
-              autoCapitalize="none"
-            />
-            <Text style={styles.label}>
-              Notes <Text style={styles.optional}>(optional)</Text>
-            </Text>
-            <TextInput
+            <View style={styles.dateLabelRow}>
+              <Text style={[styles.label, { marginBottom: 0 }]}>Date</Text>
+              <Pressable accessibilityRole="button" accessibilityState={{ expanded: showNotes }} onPress={() => setShowNotes(!showNotes)} style={styles.notesToggle}>
+                <Text style={styles.hint}>{showNotes ? "Hide note" : "+ Add note"}</Text>
+              </Pressable>
+            </View>
+            <View style={styles.dateRow}>
+              <Icon name="calendar" size={18} color={colors.subtle} />
+              <TextInput
+                accessibilityLabel="Transaction date, YYYY-MM-DD"
+                value={dateText}
+                onChangeText={setDateText}
+                placeholder="YYYY-MM-DD"
+                style={styles.dateInput}
+                editable={!saving}
+                autoCapitalize="none"
+              />
+            </View>
+            {showNotes && <TextInput
               accessibilityLabel="Notes"
               value={notes}
               onChangeText={setNotes}
               placeholder="Anything you want to remember"
               multiline
               textAlignVertical="top"
-              style={[styles.input, styles.notes]}
+              style={[styles.input, styles.notes, { marginTop: 12 }]}
               editable={!saving}
-            />
+            />}
             {loaded && (
               <Text style={styles.hint}>
                 Originally recorded{" "}
@@ -374,7 +384,7 @@ export function TransactionEditor({
                   ? "Saving..."
                   : editing
                     ? "Save changes"
-                    : `Add ${kind}`}
+                    : `Save ${kind === "income" ? "Income" : "Expense"}`}
               </Text>
             </Pressable>
           </View>
@@ -385,138 +395,31 @@ export function TransactionEditor({
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.background },
-  content: {
-    padding: 24,
-    paddingBottom: 48,
-    width: "100%",
-    maxWidth: 600,
-    alignSelf: "center",
-  },
-  eyebrow: {
-    color: colors.primary,
-    fontSize: 12,
-    fontWeight: "700",
-    letterSpacing: 1.8,
-    marginBottom: 8,
-  },
-  heading: {
-    color: colors.text,
-    fontSize: 30,
-    fontWeight: "700",
-    marginBottom: 8,
-  },
-  subtitle: {
-    color: colors.muted,
-    fontSize: 15,
-    lineHeight: 23,
-    marginBottom: 24,
-  },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: 24,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  kindRow: {
-    flexDirection: "row",
-    gap: 6,
-    backgroundColor: colors.background,
-    borderRadius: 16,
-    padding: 5,
-    marginBottom: 24,
-  },
-  kind: {
-    flex: 1,
-    minHeight: 46,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 12,
-  },
-  activeKind: { backgroundColor: colors.primarySoft },
-  label: {
-    color: colors.muted,
-    fontSize: 14,
-    fontWeight: "600",
-    marginBottom: 10,
-  },
-  amountRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1.5,
-    borderColor: colors.primary,
-    borderRadius: 18,
-    paddingHorizontal: 16,
-    backgroundColor: colors.input,
-    marginBottom: 24,
-  },
-  currency: { fontSize: 30, color: colors.primary, marginRight: 8 },
-  amount: {
-    flex: 1,
-    fontSize: 36,
-    color: colors.text,
-    fontWeight: "600",
-    minHeight: 64,
-    paddingVertical: 8,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.inputBorder,
-    backgroundColor: colors.input,
-    borderRadius: 12,
-    padding: 14,
-    fontSize: 16,
-    color: colors.text,
-    marginBottom: 22,
-    minHeight: 50,
-  },
-  categories: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-    marginBottom: 22,
-  },
-  category: {
-    minHeight: 92,
-    width: "30%",
-    alignItems: "center",
-    gap: 8,
-    justifyContent: "center",
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: colors.inputBorder,
-    paddingHorizontal: 5,
-    paddingVertical: 12,
-  },
-  selectedCategory: {
-    backgroundColor: colors.primarySoft,
-    borderColor: colors.primary,
-  },
-  categoryText: { color: colors.muted, fontSize: 11, textAlign: "center" },
-  selectedText: { color: colors.primaryDark, fontWeight: "600" },
-  optional: { color: colors.subtle, fontWeight: "400" },
-  notes: { minHeight: 96 },
-  hint: {
-    color: colors.muted,
-    fontSize: 13,
-    lineHeight: 20,
-    marginVertical: 12,
-  },
-  error: {
-    color: colors.danger,
-    fontSize: 14,
-    lineHeight: 21,
-    marginBottom: 16,
-  },
-  button: {
-    minHeight: 54,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 14,
-    backgroundColor: colors.primary,
-    marginTop: 8,
-  },
-  buttonText: { color: colors.surface, fontSize: 16, fontWeight: "600" },
+  screen: { flex: 1, backgroundColor: colors.surface },
+  content: { paddingHorizontal: 22, paddingTop: 12, width: "100%", maxWidth: 600, alignSelf: "center" },
+  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: 14 },
+  heading: { color: colors.text, fontSize: 22, fontWeight: "800", letterSpacing: -0.5, flex: 1 },
+  card: { backgroundColor: colors.surface },
+  kindRow: { flexDirection: "row", gap: 4, backgroundColor: "#F1F4F8", borderRadius: 16, padding: 4, marginBottom: 20 },
+  kind: { flex: 1, minHeight: 40, alignItems: "center", justifyContent: "center", borderRadius: 13 },
+  label: { color: colors.muted, fontSize: 13, fontWeight: "600", marginBottom: 7 },
+  amountRow: { flexDirection: "row", alignItems: "center", borderWidth: 1, borderColor: colors.inputBorder, borderRadius: 18, paddingHorizontal: 16, backgroundColor: colors.input, marginBottom: 18 },
+  currency: { fontSize: 26, color: colors.subtle, marginRight: 8, fontWeight: "700" },
+  amount: { flex: 1, fontSize: 30, color: colors.text, fontWeight: "700", minHeight: 64, paddingVertical: 10 },
+  input: { borderWidth: 1, borderColor: colors.inputBorder, backgroundColor: colors.input, borderRadius: 16, padding: 14, fontSize: 14, color: colors.text, marginBottom: 18, minHeight: 50 },
+  categories: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 18 },
+  category: { minHeight: 78, minWidth: 60, alignItems: "center", gap: 6, justifyContent: "center", borderRadius: 17, borderWidth: 1, borderColor: colors.inputBorder, backgroundColor: colors.input, paddingHorizontal: 3, paddingVertical: 9 },
+  selectedCategory: { backgroundColor: colors.primarySoft, borderColor: colors.primary, borderWidth: 2 },
+  categoryText: { color: colors.text, fontSize: 11, textAlign: "center" },
+  selectedText: { color: colors.text },
+  dateRow: { flexDirection: "row", alignItems: "center", gap: 10, borderWidth: 1, borderColor: colors.inputBorder, backgroundColor: colors.input, borderRadius: 16, paddingHorizontal: 14, minHeight: 50 },
+  dateInput: { flex: 1, minHeight: 50, color: colors.text, fontSize: 14, paddingVertical: 12 },
+  notesToggle: { minHeight: 44, justifyContent: "center", alignSelf: "flex-start" },
+  dateLabelRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  notes: { minHeight: 80 },
+  hint: { color: colors.muted, fontSize: 12, lineHeight: 18 },
+  error: { color: colors.danger, fontSize: 14, lineHeight: 21, marginBottom: 12 },
+  button: { minHeight: 54, alignItems: "center", justifyContent: "center", borderRadius: 18, backgroundColor: colors.primaryDark, marginTop: 16, boxShadow: "0px 6px 12px rgba(99,74,224,0.22)" },
+  buttonText: { color: colors.surface, fontSize: 15, fontWeight: "700" },
   disabled: { opacity: 0.6 },
 });

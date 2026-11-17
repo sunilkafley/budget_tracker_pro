@@ -1,4 +1,5 @@
 import React from "react";
+import { View } from "react-native";
 import { DefaultTheme, NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
@@ -35,11 +36,13 @@ function MainTabs() {
         tabBarStyle: {
           backgroundColor: colors.surface,
           borderTopColor: colors.border,
-          paddingTop: 8,
+          paddingTop: 7,
         },
         tabBarLabelStyle: { fontSize: 11, fontWeight: "600", marginBottom: 3 },
-        tabBarIcon: ({ color }) => (
-          <Icon name={icons[route.name]} color={color} size={24} />
+        tabBarIcon: ({ color, focused }) => (
+          <View style={{ width: 36, height: 36, borderRadius: 13, backgroundColor: focused ? colors.primarySoft : "transparent", alignItems: "center", justifyContent: "center" }}>
+            <Icon name={icons[route.name]} color={color} size={23} />
+          </View>
         ),
       })}
     >
@@ -95,12 +98,12 @@ export function AppNavigator() {
           <Stack.Screen
             name="AddIncome"
             component={AddIncomeScreen}
-            options={{ title: "Income", presentation: "modal" }}
+            options={{ headerShown: false, presentation: "formSheet", sheetAllowedDetents: [0.92], sheetGrabberVisible: true, sheetCornerRadius: 32, contentStyle: { backgroundColor: colors.surface } }}
           />
           <Stack.Screen
             name="AddExpense"
             component={AddExpenseScreen}
-            options={{ title: "Expense", presentation: "modal" }}
+            options={{ headerShown: false, presentation: "formSheet", sheetAllowedDetents: [0.92], sheetGrabberVisible: true, sheetCornerRadius: 32, contentStyle: { backgroundColor: colors.surface } }}
           />
           <Stack.Screen
             name="CreateBudget"

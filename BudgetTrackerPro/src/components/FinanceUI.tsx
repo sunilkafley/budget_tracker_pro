@@ -5,6 +5,7 @@ import {
   Pressable,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from "react-native";
 import Svg, { Path } from "react-native-svg";
@@ -152,7 +153,7 @@ export function CategoryBadge({
       style={{
         width: size,
         height: size,
-        borderRadius: 16,
+        borderRadius: size < 40 ? 12 : 16,
         backgroundColor: item.background,
         alignItems: "center",
         justifyContent: "center",
@@ -182,11 +183,13 @@ export function IconButton({
   label,
   onPress,
   disabled = false,
+  outlined = false,
 }: {
   name: IconName;
   label: string;
   onPress: () => void;
   disabled?: boolean;
+  outlined?: boolean;
 }) {
   return (
     <Pressable
@@ -197,10 +200,11 @@ export function IconButton({
       onPress={onPress}
       style={({ pressed }) => [
         finance.iconButton,
+        outlined && finance.outlinedIconButton,
         (pressed || disabled) && { opacity: 0.45 },
       ]}
     >
-      <Icon name={name} />
+      <Icon name={name} size={outlined ? 19 : 18} color={outlined ? colors.muted : colors.subtle} />
     </Pressable>
   );
 }
@@ -223,18 +227,23 @@ export function FinancePage({
     <SafeAreaView edges={["top", "left", "right"]} style={finance.page}>
       <View style={finance.header}>
         <View style={{ flex: 1 }}>
-          <Text style={finance.brand}>BUDGET TRACKER PRO</Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+            <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: colors.primary }} />
+            <Text style={finance.brand}>BUDGET TRACKER PRO</Text>
+          </View>
           <Text accessibilityRole="header" style={finance.heading}>
             {title}
           </Text>
         </View>
         <IconButton
           name="refresh"
+          outlined
           label="Refresh this screen"
           onPress={onRefresh}
         />
         <IconButton
           name="calendar"
+          outlined
           label="Recurring payments"
           onPress={() => navigation.navigate("RecurringPayments")}
         />
@@ -242,8 +251,10 @@ export function FinancePage({
       <View style={{ flex: 1 }}>{children}</View>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel="Add transaction or budget"
-        onPress={() => setAdding(true)}
+        accessibilityLabel="New transaction"
+        accessibilityHint="Opens an expense or income entry. Hold for more entry options."
+        onPress={() => navigation.navigate("AddExpense")}
+        onLongPress={() => setAdding(true)}
         style={({ pressed }) => [finance.fab, pressed && { opacity: 0.8 }]}
       >
         <Icon name="plus" size={32} color="white" />
@@ -311,7 +322,7 @@ export function FinancePage({
 export function Progress({
   percentage,
   label,
-  color = colors.success,
+  color = colors.successFill,
 }: {
   percentage: number;
   label: string;
@@ -346,199 +357,78 @@ export function Progress({
   );
 }
 export function BudgetCard({
-  budget,
-  compact = false,
-  onEdit,
-  onDelete,
-  disabled = false,
+  budget, compact = false, onEdit, onDelete, disabled = false,
 }: {
-  budget: BudgetUsage;
-  compact?: boolean;
-  onEdit: () => void;
-  onDelete?: () => void;
-  disabled?: boolean;
+  budget: BudgetUsage; compact?: boolean; onEdit: () => void;
+  onDelete?: () => void; disabled?: boolean;
 }) {
-  const status = budget.isOverBudget
-    ? "Over limit"
-    : budget.percentageUsed >= 90
-      ? "Near limit"
-      : "";
-  const tone = budget.isOverBudget
-    ? colors.danger
-    : status
-      ? colors.warning
-      : colors.success;
-  return (
-    <View
-      style={[
-        finance.card,
-        status
-          ? { borderColor: budget.isOverBudget ? "#F5CED6" : "#F1D995" }
-          : null,
-        compact && { flex: 1, minWidth: 145 },
-      ]}
-    >
+  const { fontScale } = useWindowDimensions();
+  const status = budget.isOverBudget ? "Over limit" : budget.percentageUsed >= 90 ? "Near limit" : "";
+  const tone = budget.isOverBudget ? colors.danger : status ? colors.warning : colors.success;
+  const fill = budget.isOverBudget ? colors.danger : status ? colors.warningFill : colors.successFill;
+  const periodLabel = `${budget.frequency.toLowerCase()} · ${budget.periodStart.toLocaleDateString()} to ${new Date(budget.periodEnd.getTime() - 1).toLocaleDateString()}`;
+  if (compact) {
+    return <Pressable accessibilityRole="button" accessibilityLabel={`Edit ${budget.category.name} budget. ${periodLabel}. ${formatMoney(budget.spentAmount)} spent of ${formatMoney(budget.budgetAmount)}.`}
+      disabled={disabled} onPress={onEdit} style={({ pressed }) => [finance.card, finance.watchCard, (pressed || disabled) && { opacity: 0.65 }]}>
       <View style={finance.row}>
-        <CategoryBadge category={budget.category.type} size={42} />
-        {compact ? (
-          <Text style={{ color: tone, fontWeight: "700" }}>
-            {Math.round(budget.percentageUsed)}%
-          </Text>
-        ) : (
-          <View style={{ flex: 1, marginLeft: 12 }}>
-            <Text style={finance.title}>{budget.category.name}</Text>
-            {!!status && (
-              <Text style={{ color: tone, fontSize: 12, marginTop: 3 }}>
-                {status}
-              </Text>
-            )}
-          </View>
-        )}
-        {!compact && (
-          <IconButton
-            name="edit"
-            label={"Edit " + budget.category.name + " budget"}
-            disabled={disabled}
-            onPress={onEdit}
-          />
-        )}
+        <CategoryBadge category={budget.category.type} size={34} />
+        <Text style={{ color: tone, fontSize: 13, fontWeight: "700" }}>{Math.round(budget.percentageUsed)}%</Text>
       </View>
-      {compact && (
-        <Text style={[finance.title, { marginTop: 12 }]}>
-          {budget.category.name}
-        </Text>
-      )}
-      <Text
-        style={[
-          finance.caption,
-          { marginTop: compact ? 4 : 14, marginBottom: 12 },
-        ]}
-      >
-        {formatMoney(budget.spentAmount)} of {formatMoney(budget.budgetAmount)}
-      </Text>
-      <Progress
-        percentage={budget.percentageUsed}
-        label={budget.category.name + " spending"}
-        color={tone}
-      />
-      <View style={[finance.row, { marginTop: 10, flexWrap: "wrap" }]}>
-        <Text style={{ color: tone, fontSize: 12 }}>
-          {compact
-            ? budget.frequency.toLowerCase()
-            : Math.round(budget.percentageUsed) + "% utilized"}
-        </Text>
-        {!compact && (
-          <Text style={finance.caption}>
-            {formatMoney(Math.abs(budget.remainingAmount))}{" "}
-            {budget.isOverBudget ? "over" : "left"}
-          </Text>
-        )}
-      </View>
-      {!compact && (
-        <>
-          <Text style={[finance.caption, { marginTop: 8 }]}>
-            {budget.frequency.toLowerCase()} ·{" "}
-            {budget.periodStart.toLocaleDateString()} –{" "}
-            {new Date(budget.periodEnd.getTime() - 1).toLocaleDateString()}
-          </Text>
-          {onDelete && (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={"Delete " + budget.category.name + " budget"}
-              disabled={disabled}
-              onPress={onDelete}
-              style={{
-                minHeight: 44,
-                justifyContent: "center",
-                alignSelf: "flex-start",
-              }}
-            >
-              <Text style={{ color: colors.muted, fontSize: 12 }}>
-                Delete budget
-              </Text>
-            </Pressable>
-          )}
-        </>
-      )}
-      {compact && (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={"Edit " + budget.category.name + " budget"}
-          onPress={onEdit}
-          style={{ minHeight: 44, justifyContent: "center" }}
-        >
-          <Text
-            style={{ color: colors.primary, fontSize: 12, fontWeight: "600" }}
-          >
-            Manage →
-          </Text>
-        </Pressable>
-      )}
-    </View>
-  );
-}
-export function TransactionRow({
-  record,
-  onEdit,
-  onDelete,
-  disabled = false,
-}: {
-  record: DashboardTransaction;
-  onEdit: () => void;
-  onDelete: () => void;
-  disabled?: boolean;
-}) {
-  return (
-    <View style={[finance.card, finance.transaction]}>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={"Edit " + record.transaction.title}
-        disabled={disabled}
-        onPress={onEdit}
-        style={{ flexDirection: "row", alignItems: "center", gap: 12, flex: 1 }}
-      >
-        <CategoryBadge
-          category={
-            record.kind === "income"
-              ? CategoryType.INCOME
-              : record.transaction.category.type
-          }
-        />
-        <View style={{ flex: 1 }}>
-          <Text numberOfLines={1} style={finance.title}>
-            {record.transaction.title}
-          </Text>
-          <Text numberOfLines={1} style={[finance.caption, { marginTop: 5 }]}>
-            {record.kind === "income"
-              ? "Income"
-              : record.transaction.category.name}{" "}
-            ·{" "}
-            {record.transaction.transactionDate.toLocaleDateString(undefined, {
-              month: "short",
-              day: "numeric",
-            })}
-          </Text>
-          <Text
-            style={{
-              color: record.kind === "income" ? colors.success : colors.text,
-              fontSize: 17,
-              fontWeight: "700",
-              marginTop: 6,
-            }}
-          >
-            {record.kind === "income" ? "+" : "−"}
-            {formatMoney(record.transaction.amount)}
-          </Text>
+      <Text style={finance.watchTitle}>{budget.category.name}</Text>
+      <Text style={[finance.caption, { marginBottom: 9 }]}>{formatMoney(budget.spentAmount)} / {formatMoney(budget.budgetAmount)}</Text>
+      <Progress percentage={budget.percentageUsed} label={budget.category.name + " spending"} color={fill} />
+      {budget.frequency !== "MONTHLY" && <Text style={[finance.caption, { marginTop: 6 }]}>{budget.frequency.toLowerCase()}</Text>}
+    </Pressable>;
+  }
+  return <View style={[finance.card, finance.budgetCard, !!status && { borderColor: budget.isOverBudget ? "#F4BFC9" : "#F2D76D", backgroundColor: budget.isOverBudget ? "#FFFCFD" : "#FFFEF9" }]}>
+    <View style={[finance.row, fontScale > 1.3 && { flexWrap: "wrap" }]}>
+      <CategoryBadge category={budget.category.type} size={44} />
+      <View style={{ flex: 1, minWidth: 0, marginLeft: 4 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 6 }}>
+          <Text style={finance.title}>{budget.category.name}</Text>
+          {!!status && <Text style={[finance.statusBadge, { color: tone, backgroundColor: budget.isOverBudget ? colors.dangerSoft : "#FCEDD0" }]}>{status}</Text>}
         </View>
+        <Text style={[finance.caption, { marginTop: 3 }]}>{formatMoney(budget.spentAmount)} spent of {formatMoney(budget.budgetAmount)}</Text>
+      </View>
+      <Pressable accessibilityRole="button" accessibilityLabel={"Edit " + budget.category.name + " budget cap"}
+        disabled={disabled} onPress={onEdit} style={finance.capTouch}>
+        <View style={finance.capPill}><Icon name="edit" size={13} color={colors.muted} /><Text style={finance.capText}>Cap</Text></View>
       </Pressable>
-      <IconButton
-        name="trash"
-        label={"Delete " + record.transaction.title}
-        disabled={disabled}
-        onPress={onDelete}
-      />
     </View>
-  );
+    <View style={{ marginTop: 14 }}><Progress percentage={budget.percentageUsed} label={budget.category.name + " spending"} color={fill} /></View>
+    <View style={[finance.row, { minHeight: onDelete ? 40 : 24, marginTop: 4, flexWrap: "wrap" }]}>
+      <Text style={{ color: tone, fontSize: 12 }}>{Math.round(budget.percentageUsed)}% utilized</Text>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
+        <Text style={finance.caption}>{formatMoney(Math.abs(budget.remainingAmount))} {budget.isOverBudget ? "over" : "left"}</Text>
+        {onDelete && <IconButton name="trash" label={"Delete " + budget.category.name + " budget"} disabled={disabled} onPress={onDelete} />}
+      </View>
+    </View>
+    {budget.frequency !== "MONTHLY" && <Text style={finance.caption}>{periodLabel}</Text>}
+  </View>;
+}
+
+export function TransactionRow({ record, onEdit, onDelete, disabled = false }: {
+  record: DashboardTransaction; onEdit: () => void; onDelete: () => void; disabled?: boolean;
+}) {
+  const { width, fontScale } = useWindowDimensions();
+  const amount = `${record.kind === "income" ? "+" : "−"}${formatMoney(record.transaction.amount)}`;
+  // Keep full amounts readable instead of clipping them at large text sizes.
+  const stacked = fontScale > 1.3 || (width < 380 && amount.length > 10) || amount.length > 15;
+  return <View style={[finance.card, finance.transaction]}>
+    <Pressable accessibilityRole="button" accessibilityLabel={`Edit ${record.transaction.title}, ${amount}`}
+      accessibilityState={{ disabled }} disabled={disabled} onPress={onEdit} style={finance.transactionBody}>
+      <CategoryBadge category={record.kind === "income" ? CategoryType.INCOME : record.transaction.category.type} size={44} />
+      <View style={finance.transactionCopy}>
+        <Text numberOfLines={stacked ? undefined : 1} style={finance.transactionTitle}>{record.transaction.title}</Text>
+        <Text numberOfLines={stacked ? undefined : 1} style={finance.caption}>
+          {record.kind === "income" ? "Income" : record.transaction.category.name} · {record.transaction.transactionDate.toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+        </Text>
+        {stacked && <Text style={[finance.transactionAmount, { color: record.kind === "income" ? colors.success : colors.text, marginTop: 5 }]}>{amount}</Text>}
+      </View>
+      {!stacked && <Text style={[finance.transactionAmount, { color: record.kind === "income" ? colors.success : colors.text }]}>{amount}</Text>}
+    </Pressable>
+    <IconButton name="trash" label={"Delete " + record.transaction.title} disabled={disabled} onPress={onDelete} />
+  </View>;
 }
 export const finance = StyleSheet.create({
   page: { flex: 1, backgroundColor: colors.background },
@@ -546,25 +436,25 @@ export const finance = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    paddingHorizontal: 22,
-    paddingTop: 14,
-    paddingBottom: 22,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 20,
   },
   brand: {
     fontSize: 10,
     fontWeight: "800",
-    letterSpacing: 1.8,
+    letterSpacing: 1.2,
     color: colors.primary,
-    marginBottom: 5,
+    marginBottom: 3,
   },
   heading: {
-    fontSize: 27,
+    fontSize: 24,
     fontWeight: "800",
     letterSpacing: -0.8,
     color: colors.text,
   },
   section: { fontSize: 19, fontWeight: "700", color: colors.text },
-  title: { fontSize: 16, fontWeight: "600", color: colors.text },
+  title: { fontSize: 15, fontWeight: "700", color: colors.text },
   caption: { fontSize: 12, color: colors.muted, lineHeight: 19 },
   row: {
     flexDirection: "row",
@@ -573,8 +463,8 @@ export const finance = StyleSheet.create({
     gap: 8,
   },
   content: {
-    paddingHorizontal: 22,
-    paddingBottom: 112,
+    paddingHorizontal: 16,
+    paddingBottom: 96,
     width: "100%",
     maxWidth: 760,
     alignSelf: "center",
@@ -591,21 +481,38 @@ export const finance = StyleSheet.create({
   transaction: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
-    padding: 14,
+    gap: 0,
+    paddingVertical: 12,
+    paddingLeft: 14,
+    paddingRight: 4,
+    borderRadius: 20,
+    minHeight: 74,
+    marginBottom: 12,
   },
+  transactionBody: { flex: 1, minWidth: 0, flexDirection: "row", alignItems: "center", gap: 12, minHeight: 44 },
+  transactionCopy: { flex: 1, minWidth: 0, gap: 3 },
+  transactionTitle: { fontSize: 15, fontWeight: "500", color: colors.text },
+  transactionAmount: { fontSize: 14, fontWeight: "700", flexShrink: 0 },
+  budgetCard: { borderRadius: 26, paddingHorizontal: 18, paddingTop: 16, paddingBottom: 9 },
+  watchCard: { flex: 1, minWidth: 140, padding: 16, borderRadius: 20, marginBottom: 0 },
+  watchTitle: { fontSize: 14, color: colors.text, marginTop: 10, marginBottom: 3 },
+  statusBadge: { fontSize: 10, fontWeight: "600", paddingHorizontal: 6, paddingVertical: 3, borderRadius: 5 },
+  capTouch: { minWidth: 64, minHeight: 44, justifyContent: "center", alignItems: "center" },
+  capPill: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 10, paddingVertical: 6, backgroundColor: "#F1F4F8", borderRadius: 18 },
+  capText: { fontSize: 12, color: "#526075" },
   iconButton: {
     width: 44,
     height: 44,
-    borderRadius: 16,
-    backgroundColor: colors.surface,
+    borderRadius: 22,
+    backgroundColor: "transparent",
     alignItems: "center",
     justifyContent: "center",
   },
+  outlinedIconButton: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
   fab: {
     position: "absolute",
-    bottom: 22,
-    right: 22,
+    bottom: 12,
+    right: 16,
     width: 60,
     height: 60,
     borderRadius: 30,
