@@ -22,7 +22,7 @@ it("calculates exact category totals, monthly totals and budget remainders", () 
   expect(ReportService.calculateMonthlyExpenses(expenses, 0, 2026)).toBe(0.3);
   expect(AnalyticsService.getCategoryBreakdown(expenses)).toEqual([{ category: "Groceries", amount: 0.3 }]);
   const budget = new Budget("1", category, 0.4, Frequency.MONTHLY);
-  for (const usage of [AnalyticsService.calculateBudgetUsage([budget], expenses)[0], BudgetService.getBudgetUsage(budget, expenses)]) {
+  for (const usage of [AnalyticsService.calculateBudgetUsage([budget], expenses, date)[0], BudgetService.getBudgetUsage(budget, expenses, date)]) {
     expect(usage.spentAmount).toBe(0.3);
     expect(usage.remainingAmount).toBe(0.1);
     expect(usage.percentageUsed).toBe(75);
@@ -31,8 +31,8 @@ it("calculates exact category totals, monthly totals and budget remainders", () 
 
 it("does not mark a fully spent decimal budget as over budget", () => {
   const budget = new Budget("1", category, 0.3, Frequency.MONTHLY);
-  expect(BudgetService.getBudgetUsage(budget, expenses).isOverBudget).toBe(false);
-  expect(AnalyticsService.calculateBudgetUsage([budget], expenses)[0].remainingAmount).toBe(0);
+  expect(BudgetService.getBudgetUsage(budget, expenses, date).isOverBudget).toBe(false);
+  expect(AnalyticsService.calculateBudgetUsage([budget], expenses, date)[0].remainingAmount).toBe(0);
 });
 
 describe.each([GetReportUseCase, GetMonthlyReportUseCase, GetDashboardSummaryUseCase])("%p decimal reporting", (UseCase) => {

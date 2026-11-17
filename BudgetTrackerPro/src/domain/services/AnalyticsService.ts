@@ -3,7 +3,7 @@ import { Money } from "./Money";
 import { Budget } from "../models/Budget";
 import { RecurringPayment } from "../models/RecurringPayment";
 
-import { BudgetUsage } from "../../application/dto/BudgetUsage";
+import { BudgetService, BudgetUsage } from "./BudgetService";
 
 export class AnalyticsService {
   static getTopExpenseCategory(expenses: Expense[]): string {
@@ -40,27 +40,11 @@ export class AnalyticsService {
   static calculateBudgetUsage(
     budgets: Budget[],
     expenses: Expense[],
+    referenceDate = new Date(),
   ): BudgetUsage[] {
     return budgets.map((budget) => {
-      const spentAmount = Money.sum(expenses
-        .filter((expense) => expense.category.type === budget.category.type)
-        .map((expense) => expense.amount));
-
-      const remainingAmount = Money.subtract(budget.limitAmount, spentAmount);
-
-      const percentageUsed =
-        budget.limitAmount === 0
-          ? 0
-          : Math.round((Money.toMinorUnits(spentAmount) / Money.toMinorUnits(budget.limitAmount)) * 100);
-
-      return {
-        budgetId: budget.id,
-        category: budget.category,
-        budgetAmount: budget.limitAmount,
-        spentAmount,
-        remainingAmount,
-        percentageUsed,
-      };
+      const usage = BudgetService.getBudgetUsage(budget, expenses, referenceDate);
+      return { ...usage, percentageUsed: Math.round(usage.percentageUsed) };
     });
   }
 

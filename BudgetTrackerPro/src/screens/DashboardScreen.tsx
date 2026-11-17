@@ -106,12 +106,13 @@ export function DashboardScreen({ navigation }: Props) {
         })}
 
       <SectionHeading title="Budget overview" action="Manage" onPress={() => navigation.navigate("BudgetList")} />
-      <Text style={styles.sectionNote}>Lifetime category spending against your budget limits.</Text>
+      <Text style={styles.sectionNote}>Category spending in each budget's current calendar period. Weeks start Monday.</Text>
       {errors.budgets || budgets.length === 0 ? <LoadState loading={loading} error={errors.budgets} empty="Give your spending a plan. Create a category budget to get started." onRetry={retry} /> : budgets.map((budget) => {
         const over = budget.remainingAmount < 0;
         const progress = Number.isFinite(budget.percentageUsed) ? Math.max(0, Math.min(100, budget.percentageUsed)) : 0;
         return <Card key={budget.budgetId}>
           <View style={styles.spread}><Text style={styles.title}>{budget.category.name}</Text><Text style={[styles.budgetStatus, over && styles.negative]}>{over ? "Over limit" : "Within limit"}</Text></View>
+          <Text style={styles.caption}>{budget.frequency} · {budget.periodStart.toLocaleDateString()} to {new Date(budget.periodEnd.getTime() - 1).toLocaleDateString()}</Text>
           <Text style={styles.budgetValue}>{money(budget.spentAmount)} <Text style={styles.caption}>of {money(budget.budgetAmount)}</Text></Text>
           <View accessible accessibilityRole="progressbar" accessibilityLabel={`${budget.category.name} budget usage`} accessibilityValue={{ min: 0, max: 100, now: progress, text: `${budget.percentageUsed}% used` }} style={styles.progressTrack}>
             <View style={[styles.progressFill, { width: `${progress}%` }, over && styles.overFill]} />

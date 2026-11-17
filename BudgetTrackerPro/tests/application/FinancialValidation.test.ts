@@ -59,8 +59,9 @@ const operations = [
   })),
   ...[false, true].map((update) => ({
     name: `${update ? "update" : "create"} budget`,
-    create: (amount: number) => {
+    create: async (amount: number) => {
       const repository = new FakeBudgetRepository();
+      if (update) await repository.save(new Budget("1", category, amount, Frequency.MONTHLY));
       return operation(new Budget("1", category, amount, Frequency.MONTHLY), repository,
         update ? new UpdateBudgetUseCase(repository) : new CreateBudgetUseCase(repository));
     },

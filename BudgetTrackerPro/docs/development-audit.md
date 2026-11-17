@@ -94,6 +94,11 @@ Initial CI checkout (`main` baseline, before incorporating development):
 
 ## Remaining sprint plan
 
+The [budget-period sprint](budget-periods-sprint.md) now implements current
+calendar usage and consistent enum-category matching, following the completed
+transaction-editing and dashboard UI branches. See its notes for exact period
+rules, checks and remaining device review. Recurring-payment reliability is next.
+
 The [dashboard UI sprint](dashboard-ui-sprint.md) now implements the brought-forward
 home-screen redesign and shared styling foundations. Its financial labels are
 explicitly all time/lifetime; budget-period correctness remains the next

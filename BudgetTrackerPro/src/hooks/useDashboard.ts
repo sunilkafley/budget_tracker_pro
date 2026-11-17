@@ -4,14 +4,13 @@ import { DashboardSummary } from "../application/dto/DashboardSummary";
 import { DashboardTransaction } from "../application/useCases/GetDashboardTransactionsUseCase";
 import { BudgetUsage } from "../application/dto/BudgetUsage";
 import { RecurringPayment } from "../domain/models/RecurringPayment";
-import { AnalyticsService } from "../domain/services/AnalyticsService";
 
 type Section = "summary" | "transactions" | "budgets" | "payments";
 const message = (reason: unknown) => reason instanceof Error ? reason.message : "Unable to load data. Please try again.";
 
 export function useDashboard() {
-  const { getDashboardSummaryUseCase, getDashboardTransactionsUseCase, getAllBudgetsUseCase,
-    getAllExpensesUseCase, getUpcomingPaymentsUseCase } = useRepositories();
+  const { getDashboardSummaryUseCase, getDashboardTransactionsUseCase, getBudgetUsageUseCase,
+    getUpcomingPaymentsUseCase } = useRepositories();
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [transactions, setTransactions] = useState<DashboardTransaction[]>([]);
   const [budgets, setBudgets] = useState<BudgetUsage[]>([]);
@@ -24,13 +23,9 @@ export function useDashboard() {
     const current = ++request.current;
     setLoading(true);
     setErrors({});
-    const loadBudgets = async () => {
-      const [allBudgets, expenses] = await Promise.all([getAllBudgetsUseCase.execute(), getAllExpensesUseCase.execute()]);
-      return AnalyticsService.calculateBudgetUsage(allBudgets, expenses);
-    };
     // Independent sections remain usable when another section cannot be read.
     const [summaryResult, transactionResult, budgetResult, paymentResult] = await Promise.allSettled([
-      getDashboardSummaryUseCase.execute(), getDashboardTransactionsUseCase.execute(), loadBudgets(), getUpcomingPaymentsUseCase.execute(),
+      getDashboardSummaryUseCase.execute(), getDashboardTransactionsUseCase.execute(), getBudgetUsageUseCase.execute(), getUpcomingPaymentsUseCase.execute(),
     ] as const);
     if (current !== request.current) return;
     const failures: Partial<Record<Section, string>> = {};
@@ -40,7 +35,7 @@ export function useDashboard() {
     if (paymentResult.status === "fulfilled") setPayments(paymentResult.value.slice(0, 3)); else failures.payments = message(paymentResult.reason);
     setErrors(failures);
     setLoading(false);
-  }, [getDashboardSummaryUseCase, getDashboardTransactionsUseCase, getAllBudgetsUseCase, getAllExpensesUseCase, getUpcomingPaymentsUseCase]);
+  }, [getDashboardSummaryUseCase, getDashboardTransactionsUseCase, getBudgetUsageUseCase, getUpcomingPaymentsUseCase]);
 
   const cancel = useCallback(() => { request.current++; }, []);
   return { summary, transactions, budgets, payments, errors, loading, load, cancel };

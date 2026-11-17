@@ -9,7 +9,7 @@ export type RootStackParamList = {
     incomeId?: string;
   } | undefined;
 
-  CreateBudget: undefined;
+  CreateBudget: { budgetId?: string } | undefined;
 
   BudgetList: undefined;
 
