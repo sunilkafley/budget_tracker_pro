@@ -1,4 +1,5 @@
 import React from "react";
+import { Modal, Platform } from "react-native";
 import { act, create, ReactTestInstance, ReactTestRenderer } from "react-test-renderer";
 import { FinancePage } from "../../src/components/FinanceUI";
 import { DashboardScreen } from "../../src/screens/DashboardScreen";
@@ -85,6 +86,7 @@ beforeAll(() => {
 });
 beforeEach(() => {
   jest.clearAllMocks();
+  jest.replaceProperty(Platform, "OS", "ios");
   mockTabNavigation.getParent.mockReturnValue(mockRootNavigation);
   mockRepositories.getExpenseByIdUseCase.execute.mockResolvedValue(expense);
   mockRepositories.getIncomeByIdUseCase.execute.mockResolvedValue(income);
@@ -95,11 +97,55 @@ afterEach(async () => {
 });
 afterAll(() => { jest.restoreAllMocks(); });
 
-it("opens a new expense on the root stack when + is tapped inside a tab", async () => {
+it("opens the four-option menu without navigating when + is tapped", async () => {
   const root = await mount(<FinancePage title="Overview" onRefresh={() => {}}>Content</FinancePage>);
-  pressLabel(root, "New transaction");
-  expect(mockRootNavigation.navigate).toHaveBeenCalledWith("AddExpense");
+  pressLabel(root, "Add transaction or budget");
+  expect(root.findByType(Modal).props.visible).toBe(true);
+  for (const label of ["Create budget", "Add income", "Add expense", "Recurring payment"]) expect(text(root, label)).toBeDefined();
+  expect(mockRootNavigation.navigate).not.toHaveBeenCalled();
   expect(mockTabNavigation.navigate).not.toHaveBeenCalled();
+});
+
+it.each([
+  ["Create budget", "CreateBudget"], ["Add income", "AddIncome"],
+  ["Add expense", "AddExpense"], ["Recurring payment", "CreateRecurringPayment"],
+])("waits for the iPhone menu to dismiss before opening %s", async (label, route) => {
+  const root = await mount(<FinancePage title="Overview" onRefresh={() => {}}>Content</FinancePage>);
+  pressLabel(root, "Add transaction or budget");
+  act(() => text(root, label).parent!.props.onPress());
+  expect(root.findByType(Modal).props.visible).toBe(false);
+  expect(mockRootNavigation.navigate).not.toHaveBeenCalled();
+  act(() => root.findByType(Modal).props.onDismiss());
+  expect(mockRootNavigation.navigate.mock.calls).toEqual([route === "CreateRecurringPayment" ? [route, {}] : [route]]);
+  act(() => root.findByType(Modal).props.onDismiss());
+  expect(mockRootNavigation.navigate).toHaveBeenCalledTimes(1);
+});
+
+it("closes the menu without navigating when cancelled", async () => {
+  const root = await mount(<FinancePage title="Overview" onRefresh={() => {}}>Content</FinancePage>);
+  pressLabel(root, "Add transaction or budget");
+  const close = root.findAll((node) => String(node.type) === "Pressable" && node.props.accessibilityLabel === "Close quick add")[0];
+  act(() => close.props.onPress());
+  expect(root.findByType(Modal).props.visible).toBe(false);
+  act(() => root.findByType(Modal).props.onDismiss());
+  expect(mockRootNavigation.navigate).not.toHaveBeenCalled();
+});
+
+it("ignores a second selection while the iPhone menu is dismissing", async () => {
+  const root = await mount(<FinancePage title="Overview" onRefresh={() => {}}>Content</FinancePage>);
+  pressLabel(root, "Add transaction or budget");
+  act(() => text(root, "Add income").parent!.props.onPress());
+  act(() => text(root, "Add expense").parent!.props.onPress());
+  act(() => root.findByType(Modal).props.onDismiss());
+  expect(mockRootNavigation.navigate.mock.calls).toEqual([["AddIncome"]]);
+});
+
+it("opens the chosen screen on Android without an iOS dismissal callback", async () => {
+  jest.replaceProperty(Platform, "OS", "android");
+  const root = await mount(<FinancePage title="Overview" onRefresh={() => {}}>Content</FinancePage>);
+  pressLabel(root, "Add transaction or budget");
+  act(() => text(root, "Add expense").parent!.props.onPress());
+  expect(mockRootNavigation.navigate).toHaveBeenCalledWith("AddExpense");
 });
 
 it.each(["expense", "income"])("opens the correct recent %s record on the root stack", async (kind) => {
@@ -125,7 +171,9 @@ it.each(["expense", "income"])("opens an Activity %s row on the root stack", asy
 it("can open a transaction when already rendered at the root", async () => {
   mockTabNavigation.getParent.mockReturnValue(undefined);
   const root = await mount(<FinancePage title="Overview" onRefresh={() => {}}>Content</FinancePage>);
-  pressLabel(root, "New transaction");
+  pressLabel(root, "Add transaction or budget");
+  act(() => text(root, "Add expense").parent!.props.onPress());
+  act(() => root.findByType(Modal).props.onDismiss());
   expect(mockTabNavigation.navigate).toHaveBeenCalledWith("AddExpense");
 });
 
@@ -138,16 +186,31 @@ it("registers both transaction editors as standard native modals", async () => {
   }
 });
 
-it("renders a new transaction and supports closing and switching to income", async () => {
+it("switches to income inside the existing form without reopening a native modal", async () => {
   const navigation = { goBack: jest.fn(), replace: jest.fn() };
   const root = await mount(<AddExpenseScreen navigation={navigation as unknown as React.ComponentProps<typeof AddExpenseScreen>["navigation"]}
     route={{ key: "new", name: "AddExpense" }} />);
   expect(text(root, "New transaction")).toBeDefined();
   expect(text(root, "Save Expense")).toBeDefined();
   act(() => text(root, "Income").parent!.props.onPress());
-  expect(navigation.replace).toHaveBeenCalledWith("AddIncome");
+  expect(navigation.replace).not.toHaveBeenCalled();
+  expect(text(root, "Save Income")).toBeDefined();
   pressLabel(root, "Close transaction");
   expect(navigation.goBack).toHaveBeenCalled();
+});
+
+it("saves to the income use case after switching from an expense form", async () => {
+  const navigation = { goBack: jest.fn(), replace: jest.fn() };
+  const root = await mount(<AddExpenseScreen navigation={navigation as unknown as React.ComponentProps<typeof AddExpenseScreen>["navigation"]}
+    route={{ key: "switch-save", name: "AddExpense" }} />);
+  act(() => text(root, "Income").parent!.props.onPress());
+  const field = (label: string) => root.find((node) => String(node.type) === "TextInput" && node.props.accessibilityLabel === label);
+  act(() => { field("Title").props.onChangeText("Freelance"); field("Amount").props.onChangeText("25.50"); });
+  await act(async () => { await text(root, "Save Income").parent!.props.onPress(); });
+  expect(mockRepositories.addIncomeUseCase.execute).toHaveBeenCalledWith(expect.objectContaining({ title: "Freelance", amount: 25.5 }));
+  expect(mockRepositories.addExpenseUseCase.execute).not.toHaveBeenCalled();
+  expect(navigation.replace).not.toHaveBeenCalled();
+  expect(navigation.goBack).toHaveBeenCalledTimes(1);
 });
 
 it("loads a tapped expense into its edit form", async () => {

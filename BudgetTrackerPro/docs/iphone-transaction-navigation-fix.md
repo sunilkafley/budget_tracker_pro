@@ -59,6 +59,11 @@ notice is filtered only in this suite; other console errors remain visible.
 
 ## iPhone recheck and next sprint
 
+The owner confirmed + opens the editor, then requested the earlier four-option
+menu and reported a second modal entrance when switching to Income. The
+[quick-add follow-up](quick-add-menu-fix.md) restores that menu, waits for its
+iOS dismissal before navigation, and switches transaction kind within one form.
+
 Fully reload Expo Go so its navigation tree is recreated. From Home, tap + and
 confirm New transaction is visible. Close it, tap one recent expense/income and
 confirm Edit transaction loads the right amount/title. From See all, verify

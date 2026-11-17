@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   DimensionValue,
   Modal,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -218,9 +219,24 @@ export function FinancePage({
 }) {
   const navigation = useRootNavigation();
   const [adding, setAdding] = useState(false);
-  const go = (action: () => void) => {
+  const pendingAction = useRef<(() => void) | null>(null);
+  useEffect(() => () => { pendingAction.current = null; }, []);
+  const finishQuickAdd = () => {
+    const action = pendingAction.current;
+    pendingAction.current = null;
+    action?.();
+  };
+  const closeQuickAdd = () => {
+    pendingAction.current = null;
     setAdding(false);
-    action();
+  };
+  const go = (action: () => void) => {
+    if (pendingAction.current) return;
+    pendingAction.current = action;
+    setAdding(false);
+    // UIKit cannot present the destination while this native Modal is closing.
+    // onDismiss is iOS-only, so Android dispatches without waiting for it.
+    if (Platform.OS !== "ios") finishQuickAdd();
   };
   return (
     <SafeAreaView edges={["top", "left", "right"]} style={finance.page}>
@@ -250,10 +266,9 @@ export function FinancePage({
       <View style={{ flex: 1 }}>{children}</View>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel="New transaction"
-        accessibilityHint="Opens an expense or income entry. Hold for more entry options."
-        onPress={() => navigation.navigate("AddExpense")}
-        onLongPress={() => setAdding(true)}
+        accessibilityLabel="Add transaction or budget"
+        accessibilityHint="Choose a budget, income, expense or recurring payment."
+        onPress={() => { if (!pendingAction.current) setAdding(true); }}
         style={({ pressed }) => [finance.fab, pressed && { opacity: 0.8 }]}
       >
         <Icon name="plus" size={32} color="white" />
@@ -262,12 +277,13 @@ export function FinancePage({
         visible={adding}
         transparent
         animationType="slide"
-        onRequestClose={() => setAdding(false)}
+        onRequestClose={closeQuickAdd}
+        onDismiss={finishQuickAdd}
       >
         <Pressable
           accessibilityLabel="Close quick add"
           style={finance.backdrop}
-          onPress={() => setAdding(false)}
+          onPress={closeQuickAdd}
         />
         <SafeAreaView edges={["bottom"]} style={finance.sheet}>
           <View style={finance.row}>
@@ -275,15 +291,15 @@ export function FinancePage({
             <IconButton
               name="close"
               label="Close quick add"
-              onPress={() => setAdding(false)}
+              onPress={closeQuickAdd}
             />
           </View>
           {(
             [
               {
-                label: "Add expense",
-                icon: "activity",
-                action: () => navigation.navigate("AddExpense"),
+                label: "Create budget",
+                icon: "budget",
+                action: () => navigation.navigate("CreateBudget"),
               },
               {
                 label: "Add income",
@@ -291,9 +307,9 @@ export function FinancePage({
                 action: () => navigation.navigate("AddIncome"),
               },
               {
-                label: "Create budget",
-                icon: "budget",
-                action: () => navigation.navigate("CreateBudget"),
+                label: "Add expense",
+                icon: "activity",
+                action: () => navigation.navigate("AddExpense"),
               },
               {
                 label: "Recurring payment",
