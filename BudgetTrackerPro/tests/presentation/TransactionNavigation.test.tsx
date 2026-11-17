@@ -1,5 +1,5 @@
 import React from "react";
-import { Modal, Platform } from "react-native";
+import { Animated, Modal, Platform } from "react-native";
 import { act, create, ReactTestInstance, ReactTestRenderer } from "react-test-renderer";
 import { FinancePage } from "../../src/components/FinanceUI";
 import { DashboardScreen } from "../../src/screens/DashboardScreen";
@@ -26,6 +26,10 @@ jest.mock("react-native", () => ({
   },
   KeyboardAvoidingView: "KeyboardAvoidingView", ActivityIndicator: "ActivityIndicator",
   RefreshControl: "RefreshControl", Button: "Button", Alert: { alert: jest.fn() },
+  Animated: {
+    Value: jest.fn(() => ({ setValue: jest.fn(), stopAnimation: jest.fn() })),
+    View: "AnimatedView", timing: jest.fn(() => ({ start: jest.fn() })),
+  },
   Platform: { OS: "ios" }, StyleSheet: { create: (styles: unknown) => styles },
   useWindowDimensions: () => ({ width: 390, height: 844, fontScale: 1 }),
 }));
@@ -104,6 +108,22 @@ it("opens the four-option menu without navigating when + is tapped", async () =>
   for (const label of ["Create budget", "Add income", "Add expense", "Recurring payment"]) expect(text(root, label)).toBeDefined();
   expect(mockRootNavigation.navigate).not.toHaveBeenCalled();
   expect(mockTabNavigation.navigate).not.toHaveBeenCalled();
+});
+
+it("shows menu content immediately without sliding the full-screen modal", async () => {
+  const root = await mount(<FinancePage title="Overview" onRefresh={() => {}}>Content</FinancePage>);
+  pressLabel(root, "Add transaction or budget");
+  expect(root.findByType(Modal).props).toMatchObject({ visible: true, transparent: true, animationType: "none", presentationStyle: "overFullScreen" });
+  const panel = root.find((node) => String(node.type) === "AnimatedView");
+  expect(text(panel, "Make a new entry")).toBeDefined();
+  expect(panel.props.style.opacity).not.toBe(0);
+});
+
+it("animates only the menu panel when the native popup is ready", async () => {
+  const root = await mount(<FinancePage title="Overview" onRefresh={() => {}}>Content</FinancePage>);
+  pressLabel(root, "Add transaction or budget");
+  act(() => root.findByType(Modal).props.onShow());
+  expect(Animated.timing).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ toValue: 0, useNativeDriver: true }));
 });
 
 it.each([

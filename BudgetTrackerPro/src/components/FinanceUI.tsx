@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
+  Animated,
   DimensionValue,
   Modal,
   Platform,
@@ -219,8 +220,17 @@ export function FinancePage({
 }) {
   const navigation = useRootNavigation();
   const [adding, setAdding] = useState(false);
+  const sheetOffset = useRef(new Animated.Value(12)).current;
   const pendingAction = useRef<(() => void) | null>(null);
-  useEffect(() => () => { pendingAction.current = null; }, []);
+  useEffect(() => () => { pendingAction.current = null; sheetOffset.stopAnimation(); }, [sheetOffset]);
+  const openQuickAdd = () => {
+    if (pendingAction.current) return;
+    sheetOffset.setValue(12);
+    setAdding(true);
+  };
+  const showQuickAdd = () => {
+    Animated.timing(sheetOffset, { toValue: 0, duration: 160, useNativeDriver: true }).start();
+  };
   const finishQuickAdd = () => {
     const action = pendingAction.current;
     pendingAction.current = null;
@@ -268,7 +278,7 @@ export function FinancePage({
         accessibilityRole="button"
         accessibilityLabel="Add transaction or budget"
         accessibilityHint="Choose a budget, income, expense or recurring payment."
-        onPress={() => { if (!pendingAction.current) setAdding(true); }}
+        onPress={openQuickAdd}
         style={({ pressed }) => [finance.fab, pressed && { opacity: 0.8 }]}
       >
         <Icon name="plus" size={32} color="white" />
@@ -276,60 +286,66 @@ export function FinancePage({
       <Modal
         visible={adding}
         transparent
-        animationType="slide"
+        animationType="none"
+        presentationStyle="overFullScreen"
+        onShow={showQuickAdd}
         onRequestClose={closeQuickAdd}
         onDismiss={finishQuickAdd}
       >
-        <Pressable
-          accessibilityLabel="Close quick add"
-          style={finance.backdrop}
-          onPress={closeQuickAdd}
-        />
-        <SafeAreaView edges={["bottom"]} style={finance.sheet}>
-          <View style={finance.row}>
-            <Text style={finance.section}>Make a new entry</Text>
-            <IconButton
-              name="close"
-              label="Close quick add"
-              onPress={closeQuickAdd}
-            />
-          </View>
-          {(
-            [
-              {
-                label: "Create budget",
-                icon: "budget",
-                action: () => navigation.navigate("CreateBudget"),
-              },
-              {
-                label: "Add income",
-                icon: "wallet",
-                action: () => navigation.navigate("AddIncome"),
-              },
-              {
-                label: "Add expense",
-                icon: "activity",
-                action: () => navigation.navigate("AddExpense"),
-              },
-              {
-                label: "Recurring payment",
-                icon: "calendar",
-                action: () => navigation.navigate("CreateRecurringPayment", {}),
-              },
-            ] as const
-          ).map((item) => (
-            <Pressable
-              accessibilityRole="button"
-              key={item.label}
-              style={finance.sheetAction}
-              onPress={() => go(item.action)}
-            >
-              <Icon name={item.icon} color={colors.primary} />
-              <Text style={finance.title}>{item.label}</Text>
-              <Icon name="arrow" />
-            </Pressable>
-          ))}
-        </SafeAreaView>
+        <View style={finance.popupLayer}>
+          <Pressable
+            accessibilityLabel="Close quick add"
+            style={finance.backdrop}
+            onPress={closeQuickAdd}
+          />
+          <Animated.View accessibilityViewIsModal style={{ transform: [{ translateY: sheetOffset }] }}>
+            <SafeAreaView edges={["bottom"]} style={finance.sheet}>
+              <View style={finance.row}>
+                <Text style={finance.section}>Make a new entry</Text>
+                <IconButton
+                  name="close"
+                  label="Close quick add"
+                  onPress={closeQuickAdd}
+                />
+              </View>
+              {(
+                [
+                  {
+                    label: "Create budget",
+                    icon: "budget",
+                    action: () => navigation.navigate("CreateBudget"),
+                  },
+                  {
+                    label: "Add income",
+                    icon: "wallet",
+                    action: () => navigation.navigate("AddIncome"),
+                  },
+                  {
+                    label: "Add expense",
+                    icon: "activity",
+                    action: () => navigation.navigate("AddExpense"),
+                  },
+                  {
+                    label: "Recurring payment",
+                    icon: "calendar",
+                    action: () => navigation.navigate("CreateRecurringPayment", {}),
+                  },
+                ] as const
+              ).map((item) => (
+                <Pressable
+                  accessibilityRole="button"
+                  key={item.label}
+                  style={finance.sheetAction}
+                  onPress={() => go(item.action)}
+                >
+                  <Icon name={item.icon} color={colors.primary} />
+                  <Text style={finance.title}>{item.label}</Text>
+                  <Icon name="arrow" />
+                </Pressable>
+              ))}
+            </SafeAreaView>
+          </Animated.View>
+        </View>
       </Modal>
     </SafeAreaView>
   );
@@ -543,7 +559,8 @@ export const finance = StyleSheet.create({
     backgroundColor: "#F0F2F8",
     overflow: "hidden",
   },
-  backdrop: { flex: 1, backgroundColor: "#171C2D66" },
+  popupLayer: { flex: 1, justifyContent: "flex-end" },
+  backdrop: { position: "absolute", top: 0, right: 0, bottom: 0, left: 0, backgroundColor: "#171C2D66" },
   sheet: {
     backgroundColor: colors.surface,
     borderTopLeftRadius: 28,
