@@ -69,7 +69,7 @@ reconstruct that historical day automatically.
   restart repository instances, check concurrent unrelated writes, retained
   linkage, corrupted journals and deliberate expense deletion.
 - Final commands/results are recorded below after the final verification run.
-- Lint is not configured; dependencies and lockfile are unchanged.
+- Lint is not configured; Expo was patched to ~58.0.26 with a matching lockfile after hosted compatibility validation required it; no new direct dependency was introduced.
 - No physical-device rendering/interaction, native build, signing or deployment
   was performed. An iOS export verifies JavaScript/assets only.
 
@@ -96,3 +96,8 @@ Final verification:
 - `npx.cmd expo export --platform ios --output-dir .expo/recurring-reliability-ios-export`:
   passed; 917 modules and Hermes bundle/assets exported into Git-ignored output.
 - `git diff --check`: passed before commit.
+
+Hosted CI initially stopped before TypeScript/Jest at the Expo compatibility check:
+58.0.25 was superseded by the required 58.0.26 patch. Updated Expo/lockfile and
+reran the 278 tests, TypeScript and iOS export successfully. Online
+`npx.cmd expo install --check` passes; the earlier local check used an offline map.
