@@ -6,5 +6,5 @@ import { TransactionEditor } from "../components/TransactionEditor";
 type Props = NativeStackScreenProps<RootStackParamList, "AddExpense">;
 
 export function AddExpenseScreen({ navigation, route }: Props) {
-  return <TransactionEditor kind="expense" transactionId={route.params?.expenseId} onSaved={() => navigation.goBack()} />;
+  return <TransactionEditor kind="expense" transactionId={route.params?.expenseId} onSwitchKind={()=>navigation.replace("AddIncome")} onSaved={() => navigation.goBack()} />;
 }

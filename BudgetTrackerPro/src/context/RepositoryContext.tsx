@@ -1,3 +1,4 @@
+import { GetInsightsUseCase } from "../application/useCases/GetInsightsUseCase";
 import { AsyncRecurringOccurrenceRepository } from "../infrastructure/repositories/AsyncRecurringOccurrenceRepository";
 import React, { createContext, useContext } from "react";
 
@@ -41,6 +42,7 @@ const budgetRepository = new AsyncBudgetRepository();
 const recurringPaymentRepository = new AsyncRecurringPaymentRepository();
 
 const repositoryContextValue = {
+  getInsightsUseCase: new GetInsightsUseCase(incomeRepository, expenseRepository),
   getBudgetUsageUseCase: new GetBudgetUsageUseCase(budgetRepository, expenseRepository),
   getBudgetByIdUseCase: new GetBudgetByIdUseCase(budgetRepository),
   getDashboardTransactionsUseCase: new GetDashboardTransactionsUseCase(incomeRepository, expenseRepository),

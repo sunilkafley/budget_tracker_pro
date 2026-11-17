@@ -1,3 +1,4 @@
+import { summarizeMonthlyBudgets } from "../../domain/services/MonthlyBudgetSummary";
 import { IBudgetRepository } from "../../domain/repositories/IBudgetRepository";
 import { IExpenseRepository } from "../../domain/repositories/IExpenseRepository";
 import { AnalyticsService } from "../../domain/services/AnalyticsService";
@@ -9,10 +10,20 @@ export class GetBudgetUsageUseCase {
     private readonly expenseRepository: IExpenseRepository,
   ) {}
 
+  async executeOverview(referenceDate = new Date()) {
+    const budgets = await this.execute(referenceDate);
+    return { budgets, monthlyPlan: summarizeMonthlyBudgets(budgets) };
+  }
+
   async execute(referenceDate = new Date()): Promise<BudgetUsage[]> {
     const [budgets, expenses] = await Promise.all([
-      this.budgetRepository.getAll(), this.expenseRepository.getAll(),
+      this.budgetRepository.getAll(),
+      this.expenseRepository.getAll(),
     ]);
-    return AnalyticsService.calculateBudgetUsage(budgets, expenses, referenceDate);
+    return AnalyticsService.calculateBudgetUsage(
+      budgets,
+      expenses,
+      referenceDate,
+    );
   }
 }

@@ -99,7 +99,10 @@ calendar usage and consistent enum-category matching, following the completed
 transaction-editing and dashboard UI branches. See its notes for exact period
 rules, checks and remaining device review. The [recurring-payment reliability
 sprint](recurring-payment-reliability-sprint.md) now implements occurrence recovery,
-duplicate prevention and calendar-safe recurrence. Financial Goals is next.
+duplicate prevention and calendar-safe recurrence. The owner then brought forward
+the [reference-inspired mobile experience](reference-mobile-experience-sprint.md):
+four-tab navigation, searchable activity, category budget cards and interactive
+insights. Device review remains outstanding; Financial Goals follows that review.
 
 The [dashboard UI sprint](dashboard-ui-sprint.md) now implements the brought-forward
 home-screen redesign and shared styling foundations. Its financial labels are

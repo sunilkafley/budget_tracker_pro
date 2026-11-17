@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../types/navigation";
@@ -53,7 +53,7 @@ export default function CreateBudgetScreen({ navigation, route }: Props) {
         : new Category(category, category.charAt(0) + category.slice(1).toLowerCase(), category);
       const budget = new Budget(budgetId ?? String(Date.now()), selectedCategory, Money.parseInput(amount), frequency);
       if (editing) await updateBudgetUseCase.execute(budget); else await createBudgetUseCase.execute(budget);
-      navigation.navigate("BudgetList");
+      navigation.popTo("Main", { screen: "BudgetList" });
     } catch (error) {
       setSaveError(error instanceof Error ? error.message : "Unable to save budget. Please try again.");
     } finally { pending.current = false; setSaving(false); }

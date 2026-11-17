@@ -1,8 +1,9 @@
 export const colors = {
-  background: "#F3F6FA", surface: "#FFFFFF", text: "#132A43", muted: "#526479",
-  primary: "#087F75", primaryDark: "#07685F", primarySoft: "#E4F4F0",
-  border: "#E0E7F0", inputBorder: "#D8E1EC", input: "#FAFCFE",
-  subtle: "#65768B", danger: "#A42E39", dangerSoft: "#FCEEF0", hero: "#132E3B",
+  background: '#F7F8FC', surface: '#FFFFFF', text: '#171C2D', muted: '#717D90',
+  primary: '#6554DF', primaryDark: '#5041C6', primarySoft: '#EFEDFF',
+  border: '#ECEEF5', inputBorder: '#DFE3ED', input: '#F8F9FC',
+  subtle: '#94A0B2', danger: '#C43F59', dangerSoft: '#FDECF0', hero: '#6651E8',
+  success: '#12A981', successSoft: '#D8F8EB', warning: '#C48012', warningSoft: '#FFF3D5',
 };
-export const spacing = { small: 8, medium: 16, large: 24, section: 32 };
-export const radii = { control: 12, card: 20 };
+export const spacing = { small: 8, medium: 18, large: 22, section: 30 };
+export const radii = { control: 16, card: 24 };
