@@ -10,8 +10,7 @@ import {
 } from "react-native";
 import Svg, { Path } from "react-native-svg";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
-import { AppNavigation } from "../types/navigation";
+import { useRootNavigation } from "../hooks/useRootNavigation";
 import { colors } from "../theme";
 import { CategoryType } from "../domain/enums/CategoryType";
 import { Money } from "../domain/services/Money";
@@ -217,7 +216,7 @@ export function FinancePage({
   onRefresh: () => void;
   children: React.ReactNode;
 }) {
-  const navigation = useNavigation<AppNavigation>();
+  const navigation = useRootNavigation();
   const [adding, setAdding] = useState(false);
   const go = (action: () => void) => {
     setAdding(false);
@@ -511,6 +510,7 @@ export const finance = StyleSheet.create({
   outlinedIconButton: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
   fab: {
     position: "absolute",
+    zIndex: 10,
     bottom: 12,
     right: 16,
     width: 60,

@@ -98,12 +98,12 @@ export function AppNavigator() {
           <Stack.Screen
             name="AddIncome"
             component={AddIncomeScreen}
-            options={{ headerShown: false, presentation: "formSheet", sheetAllowedDetents: [0.92], sheetGrabberVisible: true, sheetCornerRadius: 32, contentStyle: { backgroundColor: colors.surface } }}
+            options={{ headerShown: false, presentation: "modal", contentStyle: { backgroundColor: colors.surface } }}
           />
           <Stack.Screen
             name="AddExpense"
             component={AddExpenseScreen}
-            options={{ headerShown: false, presentation: "formSheet", sheetAllowedDetents: [0.92], sheetGrabberVisible: true, sheetCornerRadius: 32, contentStyle: { backgroundColor: colors.surface } }}
+            options={{ headerShown: false, presentation: "modal", contentStyle: { backgroundColor: colors.surface } }}
           />
           <Stack.Screen
             name="CreateBudget"

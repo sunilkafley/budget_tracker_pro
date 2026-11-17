@@ -7,8 +7,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import { AppNavigation } from "../types/navigation";
+import { useRootNavigation } from "../hooks/useRootNavigation";
 import { useRepositories } from "../context/RepositoryContext";
 import { useFocusedResource } from "../hooks/useFocusedResource";
 import { ActivityFilter, filterActivity } from "../application/filterActivity";
@@ -22,7 +21,7 @@ import {
 import { LoadState } from "../components/AppUI";
 import { colors } from "../theme";
 export function ActivityScreen() {
-  const navigation = useNavigation<AppNavigation>();
+  const navigation = useRootNavigation();
   const {
     getDashboardTransactionsUseCase,
     deleteExpenseUseCase,

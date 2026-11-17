@@ -71,6 +71,12 @@ saved categories, financial data, dependency manifests or lockfiles change.
 
 ## iPhone review and limits
 
+The owner subsequently completed the review and reported nonresponsive + and
+recent-activity taps. The [navigation fix](iphone-transaction-navigation-fix.md)
+replaces custom form-sheet presentation with standard native modals, makes
+stack navigation explicit and adds UI regression coverage. Its phone recheck
+supersedes the earlier form-sheet acceptance items below.
+
 Reload Expo Go from the D-drive checkout (or restart with
 `npm.cmd start -- --go --clear`). Review populated and empty Home/Activity/
 Budgets screens; confirm amounts sit on the right and titles truncate safely.

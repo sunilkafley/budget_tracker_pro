@@ -11,6 +11,7 @@ import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { OverviewCard } from "../components/OverviewCard";
 import { AppNavigation } from "../types/navigation";
 import { useDashboard } from "../hooks/useDashboard";
+import { useRootNavigation } from "../hooks/useRootNavigation";
 import { useRepositories } from "../context/RepositoryContext";
 import {
   FinancePage,
@@ -28,6 +29,7 @@ import { getDaysUntil } from "../utils/dateUtils";
 import { getRecurringPaymentStatus } from "../utils/recurringPaymentStatusUtils";
 export function DashboardScreen() {
   const navigation = useNavigation<AppNavigation>();
+  const rootNavigation = useRootNavigation();
   const {
     summary,
     monthlyPlan,
@@ -187,7 +189,7 @@ export function DashboardScreen() {
                   budget={budget}
                   compact
                   onEdit={() =>
-                    navigation.navigate("CreateBudget", {
+                    rootNavigation.navigate("CreateBudget", {
                       budgetId: budget.budgetId,
                     })
                   }
@@ -221,10 +223,10 @@ export function DashboardScreen() {
                 onDelete={() => remove(record)}
                 onEdit={() =>
                   record.kind === "income"
-                    ? navigation.navigate("AddIncome", {
+                    ? rootNavigation.navigate("AddIncome", {
                         incomeId: record.transaction.id,
                       })
-                    : navigation.navigate("AddExpense", {
+                    : rootNavigation.navigate("AddExpense", {
                         expenseId: record.transaction.id,
                       })
                 }
@@ -234,7 +236,7 @@ export function DashboardScreen() {
         <SectionHeading
           title="Upcoming payments"
           action="View all"
-          onPress={() => navigation.navigate("RecurringPayments")}
+          onPress={() => rootNavigation.navigate("RecurringPayments")}
         />
         {errors.payments || !payments.length ? (
           <LoadState
